@@ -12,6 +12,7 @@
     "get-random-values": "^1.2.0",
     "jsrsasign": "^6.2.0",
     "sha256": "^0.2.0",
+    "stdio": "^0.2.7",
     "vm": "^0.1.0"
   },
   "devDependencies": {},
