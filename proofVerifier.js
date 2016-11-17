@@ -1,5 +1,4 @@
-'use strict';
-
+//'use strict';
 checkVersion();
 
 require('./lib/loadUtils.js');
