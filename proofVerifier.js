@@ -1,5 +1,4 @@
-'use strict';
-
+//'use strict'
 checkVersion();
 
 require('./lib/loadUtils.js');
@@ -21,7 +20,7 @@ module.exports = { ops: ops };
 
 function checkVersion() {
 	if (process.version.substr(1, 1) === '0') {
-		console.log('Not compatible with version ' + process.version + ' of nodeJS, please use at least v4.x.x ');
+		console.log('Not compatible with ' + process.version + ' of nodeJS, please use at least v4.x.x');
 		console.log('exiting');
 		process.exit(1);
 	}
