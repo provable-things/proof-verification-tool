@@ -3,20 +3,11 @@ checkVersion();
 
 require('./lib/loadUtils.js');
 
-const https = require('https'),
-	fs = require('fs'),
-	stdio = require('stdio');
+const fs = require('fs');
 
 //load these dependencies on-demand only
 var tlsn,
 	comp;
-
-const ops = stdio.getopt({
-	'verbose': { key: 'v', description: 'Verbose logging' }
-});
-
-module.exports = { ops: ops };
-
 
 function checkVersion() {
 	if (process.version.substr(1, 1) === '0') {
@@ -34,9 +25,6 @@ function autoVerify() {
 		console.log('No files found in proof folder...');
 		process.exit(1);
 	}
-
-	if (ops.verbose)
-		console.log('\nFound proofs: \n' + proofs.join('\n') + '\n');
 
 	for (var i = 0; i < proofs.length; i++)
 		parseProofFile('./proof/' + proofs[i]);
@@ -73,7 +61,7 @@ function verifyProof(data, file) {
 			}
 		} catch (e) {
 			console.log(e);
-			return;
+			break;
 		}
 		break;
 		//placeholder
