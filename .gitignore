@@ -1,10 +1,9 @@
 .git
 node_modules
 browserified.js
+bundle.js
 
 # Logs
 logs
 *.log
 npm-debug.log*
-
-

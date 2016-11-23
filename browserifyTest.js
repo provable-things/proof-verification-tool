@@ -29,7 +29,10 @@ console.log('computation proof passed verification=' + computationProof);
 //and return true or false
 function verifyProof(data) {
 	const type = getProofType(data);
+	//acts as divider
+	console.log('');
 	consoleDivider();
+
 	switch (type) {
 	case ('tlsn'):
 		try {
@@ -45,13 +48,11 @@ function verifyProof(data) {
 				verify_comp.verifyComputation(decryptedHtml);
 				console.log('Computation verified!');
 			}
-			consoleDivider();
 
 			//verification passed without issues
 			return true;
 		} catch (e) {
 			console.log(e);
-			consoleDivider();
 
 			//indicates verification failed
 			return false;

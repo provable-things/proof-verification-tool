@@ -53,7 +53,7 @@ function isComputationProof(html) {
 	return (validator1 === 0 && validator2 !== -1);
 }
 
-function getProofType(proof) {
+getProofType = function (proof) {
 	const proofSlice = [
 		{
 			"slice": 27,
