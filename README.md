@@ -8,7 +8,7 @@
 
     browserify browserifyMain.js > bundle.js
 
-Load bundle.js and then verify proofs using "verifyProof()" function.
+Load bundle.js and then verify proofs using "verifyProof" function or check proof types using "getProofType".
 
 ## Node
 
