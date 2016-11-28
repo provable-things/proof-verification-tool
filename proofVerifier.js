@@ -101,7 +101,7 @@ function getProofType(proof) {
 	];
 
 	for (var i = 0; i < proofSlice.length; i++) {
-		const proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
+		var proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
 		if (proofHeader === proofSlice[i].content) {
 			return proofSlice[i].proofName;
 		}
