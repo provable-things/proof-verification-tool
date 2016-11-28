@@ -1,6 +1,6 @@
 {
   "name": "oraclize-proof-verifier",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Verifies Oraclize proofs locally",
   "main": "proofVerifier.js",
   "dependencies": {
@@ -28,6 +28,6 @@
   "scripts": {
     "test": "echo \"Error: no tests specified\" && exit 1"
   },
-  "author": "",
+  "author": "Oraclize",
   "license": "ISC"
 }

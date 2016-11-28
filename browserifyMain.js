@@ -4,14 +4,18 @@ const verify_comp = require('./lib/computationVerify.js');
 
 /*
 Edit as needed, but should follow try catch format
-and return true or false. Less verbose than the
-test and standalone verifier
 
 data parameter must be a Uint8Array type of the
 proof's content
+
+Returns an object with labels 'result' and 'subproof'
+'subproof' will specify whether a subproof was present
+such as a computation proof within a tlsn. Will be false,
+if it does not contain a subproof
 */
 verifyProof = function (data) {
 	const type = getProofType(data);
+	var subproof = false;
 	switch (type) {
 	case ('tlsn'):
 		try {
@@ -22,6 +26,7 @@ verifyProof = function (data) {
 			const decryptedHtml = verificationResult[0];
 
 			if (isComputationProof(decryptedHtml)) {
+				subproof = 'computation';
 				console.log('Computation proof found...');
 
 				verify_comp.verifyComputation(decryptedHtml);
@@ -29,16 +34,16 @@ verifyProof = function (data) {
 			}
 
 			//verification passed without issues
-			return true;
+			return { result: true, subproof: subproof };
 		} catch (e) {
 			console.log(e);
 
 			//indicates verification failed
-			return false;
+			return { result: false, subproof: false };
 		}
 	default:
 		console.log('Unknown proof type');
-		return false;
+		return { result: false, subproof: false };
 	}
 }
 

@@ -21,14 +21,29 @@ var normalProof = verifyProof(new Uint8Array(normalProofContent));
 var corruptProof = verifyProof(new Uint8Array(corruptProofContent));
 var computationProof = verifyProof(new Uint8Array(computationProofContent));
 
-console.log('normal proof passed verification=' + normalProof);
-console.log('corrupt proof passed verification=' + corruptProof);
-console.log('computation proof passed verification=' + computationProof);
+console.log(computationProof.subproof);
 
-//Edit as needed, but should follow try catch format
-//and return true or false
+console.log('normal proof passed verification=' + normalProof.result);
+subproofChecker(normalProof.subproof);
+console.log('corrupt proof passed verification=' + corruptProof.result);
+subproofChecker(corruptProof.subproof);
+console.log('computation proof passed verification=' + computationProof.result);
+subproofChecker(computationProof.subproof);
+
+/*
+Edit as needed, but should follow try catch format
+
+data parameter must be a Uint8Array type of the
+proof's content
+
+Returns an object with labels 'result' and 'subproof'
+'subproof' will specify whether a subproof was present
+such as a computation proof within a tlsn. Will be false,
+if it does not contain a subproof
+*/
 function verifyProof(data) {
 	const type = getProofType(data);
+	var subproof = false;
 	//acts as divider
 	console.log('');
 	consoleDivider();
@@ -43,6 +58,7 @@ function verifyProof(data) {
 			const decryptedHtml = verificationResult[0];
 
 			if (isComputationProof(decryptedHtml)) {
+				subproof = 'computation';
 				console.log('Computation proof found...');
 
 				verify_comp.verifyComputation(decryptedHtml);
@@ -50,19 +66,19 @@ function verifyProof(data) {
 			}
 
 			//verification passed without issues
-			return true;
+			return { result: true, subproof: subproof };
 		} catch (e) {
 			console.log(e);
 
 			//indicates verification failed
-			return false;
+			return { result: false, subproof: false };
 		} finally {
 			consoleDivider();
 		}
 	default:
 		console.log('Unknown proof type');
 		consoleDivider();
-		return false
+		return { result: false, subproof: false };
 	}
 }
 
@@ -92,7 +108,7 @@ function getProofType(proof) {
 	];
 
 	for (var i = 0; i < proofSlice.length; i++) {
-		const proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
+		var proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
 		if (proofHeader === proofSlice[i].content) {
 			return proofSlice[i].proofName;
 		}
@@ -101,4 +117,9 @@ function getProofType(proof) {
 
 function consoleDivider() {
 	console.log('##############################################');
+}
+
+function subproofChecker(subproof) {
+	if (subproof !== false)
+		console.log('also contained a ' + subproof + ' proof');
 }
