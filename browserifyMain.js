@@ -16,6 +16,8 @@ if it does not contain a subproof
 verifyProof = function (data) {
 	const type = getProofType(data);
 	var subproof = false;
+	var subproofResult = false;
+
 	switch (type) {
 	case ('tlsn'):
 		try {
@@ -30,20 +32,21 @@ verifyProof = function (data) {
 				console.log('Computation proof found...');
 
 				verify_comp.verifyComputation(decryptedHtml);
+				subproofResult = true;
 				console.log('Computation verified!');
 			}
 
 			//verification passed without issues
-			return { result: true, subproof: subproof };
+			return { result: true, type: type, subproof: subproof, subproofResult: subproofResult };
 		} catch (e) {
 			console.log(e);
 
 			//indicates verification failed
-			return { result: false, subproof: false };
+			return { result: false, type: type, subproof: subproof, subproofResult: subproofResult };
 		}
 	default:
 		console.log('Unknown proof type');
-		return { result: false, subproof: false };
+		return { result: false, type: false, subproof: false, subproofResult: false };
 	}
 }
 
