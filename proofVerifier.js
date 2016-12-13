@@ -71,7 +71,7 @@ function verifyProof(data, file) {
         if (typeof android === 'undefined')
           android = require('./lib/androidVerify.js');
 
-        android.test(data);
+        android.main(data);
       } catch (e) {
         console.log(e + e.stack);
         break;
