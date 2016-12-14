@@ -3,8 +3,6 @@ checkVersion();
 
 require('./lib/loadUtils.js');
 
-const fs = require('fs');
-
 //load these dependencies on-demand only
 var tlsn,
   comp;
