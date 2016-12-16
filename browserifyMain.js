@@ -67,7 +67,7 @@ getProofType = function (proof) {
 		},
 		{
 			"slice": 3,
-			"content": "S01",
+			"content": "AP\x01",
 			"proofName": "android"
 		}
 	];
