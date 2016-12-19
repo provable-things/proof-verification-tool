@@ -67,9 +67,22 @@ function verifyProof(data, file) {
     case ('android'):
       try {
         if (typeof android === 'undefined')
-          android = require('./lib/androidVerify.js');
+          android = require('./lib/androidVerify.js')
 
-        android.main(data);
+        //Loading and parsing certificate chain of signing key
+        console.log("Fetch AndroidProof.chain from ./certs")
+        var chain = android.getCertificateChain()
+        var params = android.getVerificationParameters()
+
+        android.verify(data,chain, params).then( function(result) {
+          if(result) {
+            console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
+          } else {
+            console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ")
+          }
+        })
+
+
       } catch (e) {
         console.log(e + e.stack);
         break;
