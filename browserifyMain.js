@@ -51,10 +51,10 @@ verifyProof = function (data) {
 
  
       if(android.verify(data, null, params)) {
-        console.log("The Android Proof contained in " + parseFileName(file) + " is valid");
+        console.log("The Android Proof is valid");
 				return { result: true, subproof: false };
       } else {
-        console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ");
+        console.log("The Android Proof is invalid ");
 				return { result: false, subproof: false };
       }
 
