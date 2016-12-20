@@ -74,7 +74,6 @@ function verifyProof(data, file) {
         var chain = android.getCertificateChain()
         var params = android.getVerificationParameters()
 
-
         if(android.verify(data, chain, params)) {
           console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
         } else {

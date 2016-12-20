@@ -43,12 +43,13 @@ verifyProof = function (data) {
 		}
 	case ('android'):
     try {
-
-			var params = '{ "googleApiKey" : "AIzaSyCkruvXUsDIVCQubpimWlFFzDFKvv9E71Y",' +
+	
+	 var params = '{ "googleApiKey" : "AIzaSyCkruvXUsDIVCQubpimWlFFzDFKvv9E71Y",' +
 		    '"apkDigest": ["iLVOtOJu6SqNBA16v02nZED6eWWslB1Mu4aNwqMNQ3U"],' +
 		    '"apkCertDigest": ["xDk1cd/kftArCHCkk51/78EzjCbMITCaSPJfa37Sb9Y="],'+
 		    '"pubKeys": ["04a9e16dd7a54826782622a38e9fc74f67d8d681de1330d30c4f3a3d81e49b3cb60d52218904accc23b2e0b5c5450d5cfc2e525f423f2496547cb816b778e98f0f"]}'
 
+ 
       if(android.verify(data, null, params)) {
         console.log("The Android Proof contained in " + parseFileName(file) + " is valid");
 				return { result: true, subproof: false };
