@@ -17,6 +17,7 @@
     "request": "^2.79.0",
     "requirejs": "^2.3.2",
     "sha256": "^0.2.0",
+    "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
     "vm": "^0.1.0"
   },

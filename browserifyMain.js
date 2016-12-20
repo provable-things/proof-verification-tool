@@ -1,7 +1,7 @@
 //Required library dependencies for browserify
 const verify_tlsn = require('./lib/tlsnVerify.js');
 const verify_comp = require('./lib/computationVerify.js');
-
+const android = require('./lib/androidVerify.js')
 /*
 Edit as needed, but should follow try catch format
 
@@ -41,6 +41,25 @@ verifyProof = function (data) {
 			//indicates verification failed
 			return { result: false, subproof: false };
 		}
+	case ('android'):
+    try {
+
+      var chain = android.getCertificateChain();
+      var params = android.getVerificationParameters();
+
+      if(android.verify(data,chain, params)) {
+        console.log("The Android Proof contained in " + parseFileName(file) + " is valid");
+				return { result: true, subproof: false };
+      } else {
+        console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ");
+				return { result: false, subproof: false };
+      }
+
+
+    } catch (e) {
+      console.log(e + e.stack);
+      break;
+    }
 	default:
 		console.log('Unknown proof type');
 		return { result: false, subproof: false };

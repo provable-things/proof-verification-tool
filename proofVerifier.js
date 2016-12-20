@@ -74,13 +74,12 @@ function verifyProof(data, file) {
         var chain = android.getCertificateChain()
         var params = android.getVerificationParameters()
 
-        android.verify(data,chain, params).then( function(result) {
-          if(result) {
-            console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
-          } else {
-            console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ")
-          }
-        })
+
+        if(android.verify(data,chain, params)) {
+          console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
+        } else {
+          console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ")
+        }
 
 
       } catch (e) {
