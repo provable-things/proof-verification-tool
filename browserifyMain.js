@@ -56,7 +56,8 @@ verifyProof = function (data) {
 
     } catch (e) {
       console.log(e + e.stack);
-      break;
+      console.log("The Android Proof is invalid");
+	  return { result: false, subproof: false };
     }
 	default:
 		console.log('Unknown proof type');
