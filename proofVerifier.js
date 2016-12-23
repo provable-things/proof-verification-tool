@@ -35,14 +35,12 @@ function parseProofFile(proofFile) {
 
 function verifyProof(data, file) {
   const type = getProofType(data);
-  console.log(type);
+  console.log('\n##############################################\n' + parseFileName(file));
   switch (type) {
     case ('tlsn'):
       try {
         if (typeof tlsn === 'undefined')
           tlsn = require('./lib/tlsnVerify.js');
-
-        console.log('\n##############################################\n' + parseFileName(file));
         console.log('Verifying TLSNotary proof...')
 
         const verificationResult = tlsn.verify(data);
@@ -77,7 +75,7 @@ function verifyProof(data, file) {
         if(android.verify(data, chain, params)) {
           console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
         } else {
-          console.log("The Android Proof contained in " + parseFileName(file) + "  is invalid ")
+          console.log("The Android Proof contained in " + parseFileName(file) + " is invalid ")
         }
 
 
@@ -87,7 +85,6 @@ function verifyProof(data, file) {
       }
       break;
     default:
-      console.log('##############################################');
       console.log(parseFileName(file));
       console.log('Unknown proof type');
       break;
