@@ -24,8 +24,12 @@ function autoVerify() {
     process.exit(1);
   }
 
-  for (var i = 0; i < proofs.length; i++)
-    parseProofFile('./proof/' + proofs[i]);
+  for (var i = 0; i < proofs.length; i++) {
+      var path = './proof/' + proofs[i];
+      if (!fs.lstatSync(path).isDirectory()) {
+        parseProofFile(path);
+      }
+    }
 }
 
 function parseProofFile(proofFile) {
