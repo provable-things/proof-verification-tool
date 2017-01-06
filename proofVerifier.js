@@ -1,11 +1,10 @@
-//'use strict';
+
 checkVersion();
 
 require('./lib/loadUtils.js');
 
 //load these dependencies on-demand only
-var tlsn,
-  comp;
+var tlsn,comp;
 
 function checkVersion() {
   if (process.version.substr(1, 1) === '0') {
@@ -24,7 +23,7 @@ function autoVerify() {
     process.exit(1);
   }
 
-  for (var i = 0; i < proofs.length; i++) {
+  for(var i = 0; i < proofs.length; i++) {
       var path = './proof/' + proofs[i];
       if (!fs.lstatSync(path).isDirectory()) {
         parseProofFile(path);
@@ -38,62 +37,60 @@ function parseProofFile(proofFile) {
 }
 
 function verifyProof(data, file) {
-  const type = getProofType(data);
-  console.log('\n##############################################\n' + parseFileName(file));
-  switch (type) {
-    case ('tlsn'):
-      try {
-        if (typeof tlsn === 'undefined')
-          tlsn = require('./lib/tlsnVerify.js');
-        console.log('Verifying TLSNotary proof...')
+    const type = getProofType(data);
+    console.log('\n##############################################\n' + parseFileName(file));
 
-        const verificationResult = tlsn.verify(data);
-        console.log('TLSNotary proof successfully verified!');
+    switch (type) {
+        case 'tlsn':
+        try {
+            if (typeof tlsn === 'undefined')
+                tlsn = require('./lib/tlsnVerify.js');
 
-        const decryptedHtml = verificationResult[0];
+            console.log('Verifying TLSNotary proof...');
 
-        if (isComputationProof(decryptedHtml)) {
-          if (typeof comp === 'undefined')
-            comp = require('./lib/computationVerify.js');
-          console.log('Computation proof found...');
+            const verificationResult = tlsn.verify(data);
+            console.log('TLSNotary proof successfully verified!');
 
-          comp.verifyComputation(decryptedHtml);
-          console.log('Computation verified!');
+            const decryptedHtml = verificationResult[0];
+
+            if (isComputationProof(decryptedHtml)) {
+                if (typeof comp === 'undefined')
+                    comp = require('./lib/computationVerify.js');
+
+                console.log('Computation proof found...');
+                comp.verifyComputation(decryptedHtml);
+                console.log('Computation verified!');
+            }
+        } catch (e) {
+            console.log(e);
         }
-      } catch (e) {
-        console.log(e);
         break;
-      }
-      break;
-      //placeholder
-    case ('android'):
-      try {
-        if (typeof android === 'undefined')
-          android = require('./lib/androidVerify.js')
+        case 'android':
+            try {
+                if (typeof android === 'undefined')
+                    android = require('./lib/androidVerify.js')
 
         //Loading and parsing certificate chain of signing key
-        console.log("Fetch AndroidProof.chain from ./certs")
-        var chain = android.getCertificateChain()
-        var params = android.getVerificationParameters()
+                console.log("Fetch AndroidProof.chain from ./certs")
+                var chain = android.getCertificateChain()
+                var params = android.getVerificationParameters()
 
-        if(android.verify(data, chain, params)) {
-          console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
-        } else {
-          console.log("The Android Proof contained in " + parseFileName(file) + " is invalid ")
-        }
-
-
-      } catch (e) {
-        console.log(e + e.stack);
-        break;
-      }
-      break;
-    default:
-      console.log(parseFileName(file));
-      console.log('Unknown proof type');
-      break;
-  }
-  console.log('##############################################');
+                if(android.verify(data, chain, params)) {
+                    console.log("The Android Proof contained in " + parseFileName(file) + " is valid")
+                } else {
+                    console.log("The Android Proof contained in " + parseFileName(file) + " is invalid ")
+                }
+            } catch (e) {
+                console.log(e + e.stack);
+                break;
+            }
+            break;
+        default:
+            console.log(parseFileName(file));
+            console.log('Unknown proof type');
+            break;
+    }
+    console.log('##############################################');
 }
 
 
@@ -110,19 +107,19 @@ function isComputationProof(html) {
 
 function getProofType(proof) {
   const proofSlice = [
-    {
-      "slice": 27,
-      "content": "tlsnotary notarization file",
-      "proofName": "tlsn"
-		},
-    {
-      "slice": 3,
-      "content": "AP\x01",
-      "proofName": "android"
-		}
+      {
+          "slice": 27,
+          "content": "tlsnotary notarization file",
+          "proofName": "tlsn"
+      },
+      {
+          "slice": 3,
+          "content": "AP\x01",
+          "proofName": "android"
+      }
 	];
 
-  for (var i = 0; i < proofSlice.length; i++) {
+  for(var i = 0; i < proofSlice.length; i++) {
     var proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
 
     if (proofHeader === proofSlice[i].content) {

@@ -5,6 +5,7 @@
   "main": "proofVerifier.js",
   "dependencies": {
     "asn1.js": "^4.9.0",
+    "asyncawait": "^1.0.6",
     "atob": "^2.0.3",
     "big-integer": "^1.6.17",
     "brfs": "^1.4.3",
@@ -19,7 +20,11 @@
     "sha256": "^0.2.0",
     "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
-    "vm": "^0.1.0"
+    "vm": "^0.1.0",
+    "xml2js": "^0.4.17",
+    "xml2json": "^0.10.0",
+    "xmldom": "^0.1.27",
+    "xmlhttprequest": "^1.8.0"
   },
   "browser": {
     "vm": false,
@@ -32,9 +37,11 @@
       "brfs"
     ]
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "xo": "^0.17.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no tests specified\" && exit 1"
+    "test": "xo && echo \"Error: no tests specified\" && exit 1"
   },
   "author": "Oraclize",
   "license": "ISC"
