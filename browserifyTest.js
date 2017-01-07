@@ -1,6 +1,6 @@
 //Required library dependencies for browserify
-const verify_tlsn = require('./lib/tlsnVerify.js');
-const verify_comp = require('./lib/computationVerify.js');
+const verify_tlsn = require('./lib/tlsn-verify.js');
+const verify_comp = require('./lib/computation-verify.js');
 //fs is only used for this example and can be omitted
 //depending on the method that the proof's content is fetched
 const fs = require('fs');
@@ -11,22 +11,22 @@ Can be done in various ways for production
 The following usage is for example only, as the contents
 are basically entered this way as static strings
 */
-var normalProofContent = fs.readFileSync('./proof/QmNpJ7ytEiYjX1Tf9h5ikG9kuVt2KdjEQRg31Z9sakDHd5');
-var corruptProofContent = fs.readFileSync('./proof/QmNpcorrupted');
-var computationProofContent = fs.readFileSync('./proof/QmPWgqzdzLW5LjgrjyPi2JUUzSsqaYze3LHFGGTA7UYWFH');
+var tlsnv1 = fs.readFileSync('./proof/tlsnv1.proof');
+var tlsnv2 = fs.readFileSync('./proof/tlsnv2.proof');
+var computationProofContent = fs.readFileSync('./proof/computation.proof');
 
 //after fetching and before sending for verification
 //convert content to Uint8Array
-var normalProof = verifyProof(new Uint8Array(normalProofContent));
-var corruptProof = verifyProof(new Uint8Array(corruptProofContent));
+var v1 = verifyProof(new Uint8Array(tlsnv1));
+var v2 = verifyProof(new Uint8Array(tlsnv2));
 var computationProof = verifyProof(new Uint8Array(computationProofContent));
 
 console.log(computationProof.subproof);
 
-console.log('normal proof passed verification=' + normalProof.result);
-subproofChecker(normalProof.subproof);
-console.log('corrupt proof passed verification=' + corruptProof.result);
-subproofChecker(corruptProof.subproof);
+console.log('normal proof v1 passed verification=' + v1.result);
+subproofChecker(v1.subproof);
+console.log('normal proof v2 passed verification=' + v2.result);
+subproofChecker(v2.subproof);
 console.log('computation proof passed verification=' + computationProof.result);
 subproofChecker(computationProof.subproof);
 
