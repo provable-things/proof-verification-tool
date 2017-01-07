@@ -1,9 +1,12 @@
 var utils = require('./lib/load-utils.js');
+const oracle = require('./lib/oraclize/oracles.js');
+
 checkVersion();
 // load these dependencies on-demand only
 var tlsn;
 var computation;
 var android;
+var verifiedServers = [];
 
 function checkVersion() {
 	if (process.version.substr(1, 1) === '0') {
@@ -16,14 +19,41 @@ function checkVersion() {
 // Feches any files in proof folder and verifies them
 function autoVerify() {
 	const proofs = fs.readdirSync('./proof/');
+	console.log('Verify TLSNotary servers validity');
+	var mainPubKey;
+	for (var j = 1; j < 3; j++) {
+		var servers = oracle.servers[j];
+		for (var i = 0; i < servers.length; i++) {
+			var server = servers[i];
+			try {
+				switch (j) {
+					case 1:
+						mainPubKey = oracle.validateServer(server, 'main', mainPubKey);
+						oracle.validateServer(server, 'sig', mainPubKey);
+						break;
+					default:
+						mainPubKey = oracle.validateServer(server, '', mainPubKey);
+				}
+				console.log('Valid server:' + server.name);
+			} catch (err) {
+				if (err.name === 'aws_request_failed' && j === 1) {
+					console.log('"Pagesigner notary server v1, verification status is unknown: the server might be offline or non-existent anymore');
+				} else {
+					console.log(server.name + ': skipping invalid server');
+				}
+			}
+			verifiedServers.push(server);
+		}
+	}
+	console.log('TLSNotary servers validity caching ended');
 
 	if (proofs.length === 0) {
 		console.log('No files found in proof folder...');
 		process.exit(1);
 	}
 
-	for (var i = 0; i < proofs.length; i++) {
-		var path = './proof/' + proofs[i];
+	for (var h = 0; h < proofs.length; h++) {
+		var path = './proof/' + proofs[h];
 		if (!fs.lstatSync(path).isDirectory()) {
 			parseProofFile(path);
 		}
@@ -48,7 +78,7 @@ function verifyProof(data, file) {
 
 				console.log('Verifying TLSNotary proof...');
 
-				const verificationResult = tlsn.verify(data);
+				const verificationResult = tlsn.verify(data, verifiedServers);
 				console.log('TLSNotary proof successfully verified!');
 
 				const decryptedHtml = verificationResult[0];
