@@ -66,7 +66,8 @@ verifyProof = function (data, servers) {
 	}
 }
 
-function getVerifedServers() {
+getVerifiedServers = function () {
+	var verifiedServers = [];
 	console.log('Verify TLSNotary servers validity');
 	var mainPubKey;
 	for (var j = 1; j < 3; j++) {

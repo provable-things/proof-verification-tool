@@ -17,8 +17,9 @@
     "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
     "vm": "^0.1.0",
+    "vm-browserify": "0.0.4",
     "xml2js": "^0.4.17"
-},
+  },
   "browser": {
     "vm": false,
     "atob": false,
