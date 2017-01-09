@@ -20,7 +20,32 @@ function checkVersion() {
 function autoVerify() {
 	const proofs = fs.readdirSync('./proof/');
 	console.log('Verify TLSNotary servers validity');
+	verifiedServers = getVerifiedServers();
+	console.log('TLSNotary servers validity caching ended');
+
+	if (proofs.length === 0) {
+		console.log('No files found in proof folder...');
+		process.exit(1);
+	}
+
+	for (var h = 0; h < proofs.length; h++) {
+		var path = './proof/' + proofs[h];
+		if (!fs.lstatSync(path).isDirectory()) {
+			parseProofFile(path);
+		}
+	}
+}
+
+function parseProofFile(proofFile) {
+	const parsedProof = new Uint8Array(fs.readFileSync(proofFile));
+	verifyProof(parsedProof, proofFile);
+}
+
+
+function getVerifiedServers() {
 	var mainPubKey;
+	var vServers = [];
+
 	for (var j = 1; j < 3; j++) {
 		var servers = oracle.servers[j];
 		for (var i = 0; i < servers.length; i++) {
@@ -42,27 +67,10 @@ function autoVerify() {
 					console.log(server.name + ': skipping invalid server');
 				}
 			}
-			verifiedServers.push(server);
+			vServers.push(server);
 		}
 	}
-	console.log('TLSNotary servers validity caching ended');
-
-	if (proofs.length === 0) {
-		console.log('No files found in proof folder...');
-		process.exit(1);
-	}
-
-	for (var h = 0; h < proofs.length; h++) {
-		var path = './proof/' + proofs[h];
-		if (!fs.lstatSync(path).isDirectory()) {
-			parseProofFile(path);
-		}
-	}
-}
-
-function parseProofFile(proofFile) {
-	const parsedProof = new Uint8Array(fs.readFileSync(proofFile));
-	verifyProof(parsedProof, proofFile);
+	return vServers;
 }
 
 function verifyProof(data, file) {
