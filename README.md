@@ -18,10 +18,10 @@ To use with Node.js, requires v4 or higher, not backwards compatible with v0.12 
 
 ### How to use
 
-Place proof files in the proof subdirectory (2 valid examples and 1 corrupted included for testing)
+Place proof files in the proof subdirectory 
 
 Then run with
 
-    node proofVerifier
+    node proof-verifier
 
 Any files in the proof folder will be checked and verified
