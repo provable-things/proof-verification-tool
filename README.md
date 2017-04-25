@@ -29,7 +29,7 @@ Any files in the proof folder will be checked and verified
 ### Extracting the Raw Proof Content
 Each proof contains a content, which can be different according to the proof type. For the Android, TLSNotary and Computation Proof, the raw proof content is a full HTTP Response.
 
-In order to extract it, to verify the results contained or for debug purposed, the flag --saveContent should be set to true, as in the following example:
+In order to extract it, to verify the results contained or for debug purposed, the flag --saveContenshould be used, as in the following example:
 
 	node proof-verifier --saveContent
 
