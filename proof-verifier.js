@@ -101,14 +101,14 @@ function verifyProof(data, file) {
 				var flagPosition;
 				process.argv.forEach( function(val, index, array) {
 					if (val == "--saveContent") {
-						flagPosition = index + 1;
+						flagPosition = index;
 					}
 				});
 				
 				var flagString = String(process.argv[flagPosition]);	
 				flagString = flagString.toLowerCase().trim();
 				
-				if (flagString == "true") {
+				if (flagString == "--savecontent") {
 					var appRoot = process.cwd();
 					fs.writeFile(appRoot + "/output/" + parseFileName(file) + ".out", decryptedHtml, function(err) {
 						if(err) {

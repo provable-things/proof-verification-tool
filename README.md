@@ -31,6 +31,6 @@ Each proof contains a content, which can be different according to the proof typ
 
 In order to extract it, to verify the results contained or for debug purposed, the flag --saveContent should be set to true, as in the following example:
 
-	node proof-verifier --saveContent true
+	node proof-verifier --saveContent
 
 The raw proof content will then be saved in an 'output' folder, in a file named as the proof it is extracted from. If the 'output' folder doesn't exist, it will be automatically created. 
