@@ -1,5 +1,6 @@
 var utils = require('./lib/load-utils.js');
 const oracle = require('./lib/oraclize/oracles.js');
+var fs = require('fs');
 
 checkVersion();
 // load these dependencies on-demand only
@@ -90,6 +91,35 @@ function verifyProof(data, file) {
 				console.log('TLSNotary proof successfully verified!');
 
 				const decryptedHtml = verificationResult[0];
+				
+				var dir = './output';
+
+				if (!fs.existsSync(dir)) {
+					fs.mkdirSync(dir);
+				}
+
+				var flagPosition;
+				process.argv.forEach( function(val, index, array) {
+					if (val == "--saveContent") {
+						flagPosition = index + 1;
+					}
+				});
+				
+				var flagString = String(process.argv[flagPosition]);	
+				flagString = flagString.toLowerCase().trim();
+				
+				if (flagString == "true") {
+					var appRoot = process.cwd();
+					fs.writeFile(appRoot + "/output/" + parseFileName(file) + ".out", decryptedHtml, function(err) {
+						if(err) {
+							console.log("error", err);
+						}
+						else {
+							console.log("Writing proof content to file...")
+						}
+
+					});
+				}
 
 				if (isComputationProof(decryptedHtml)) {
 					if (typeof computation === 'undefined') {
