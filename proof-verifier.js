@@ -153,6 +153,37 @@ function verifyProof(data, file) {
 				console.log(err.stack);
 			}
 			break;
+		case 'ledger':
+			try {
+				if (typeof ledger === 'undefined') {
+					ledger = require('./lib/ledger-verify.js');
+				}
+			
+				const result = ledger.verify(data);
+				if(result) {
+				
+					switch(result[0]) {
+						case 'random':
+							
+							const result = ledger.verifyRandom(data);
+							if (result) {
+								console.log('The Ledger Proof and the Random Proof contained in ' + parseFileName(file) + ' are valid');
+							} else {
+								console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid, but the Random Proof is invalid');
+							}
+							break;
+						default:
+							console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is valid, but the nested proof is not recognized');
+					}
+				} else {
+					console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid');
+				}
+
+			} catch (err) {
+				console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid');
+				console.log(err);
+			}
+			break;
 		default:
 			console.log(parseFileName(file));
 			console.log('Unknown proof type');
@@ -182,6 +213,11 @@ function getProofType(proof) {
 			slice: 3,
 			content: 'AP\x01',
 			proofName: 'android'
+		},
+		{
+			slice: 3,
+			content: 'LP\x01',
+			proofName: 'ledger'
 		}
 	];
 

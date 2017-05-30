@@ -1,6 +1,7 @@
 //Required library dependencies for browserify
 const verify_tlsn = require('./lib/tlsn-verify.js');
 const verify_comp = require('./lib/computation-verify.js');
+const ledger = require('./lib/ledger-verify.js');
 const android = require('./lib/android-verify.js');
 const oracle = require('./lib/oraclize/oracles.js');
 /*
@@ -59,6 +60,27 @@ verifyProof = function (data, servers) {
 			console.log(e + e.stack);
 			console.log("The Android Proof is invalid");
 			return { result: false, subproof: false };
+		}
+	case ('ledger'):
+		try {
+			const result = ledger.verify(data);
+
+			if (result[1]) {
+			
+				switch(result[0]) {
+					case 'random':
+						return { result: true, subproof: ledger.verifyRandom(data) }
+					default:
+						console.log("Unknown subproof type");
+						return { result: true, subproof: false}
+				}
+			} else {
+				return {result: false, subproof: false};
+			} 
+
+		} catch (e) {
+			console.log("The Ledger Proof is invalid :" + e + e.stack);
+			return { result: false, subproof: false};
 		}
 	default:
 		console.log('Unknown proof type');
@@ -120,6 +142,11 @@ getProofType = function (proof) {
 			"slice": 3,
 			"content": "AP\x01",
 			"proofName": "android"
+		},
+		{	
+			"slice": 3,
+			"content": "LP\x01",
+			"proofName": "ledger"
 		}
 	];
 
