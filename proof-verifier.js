@@ -160,8 +160,7 @@ function verifyProof(data, file) {
 				}
 			
 				const result = ledger.verify(data);
-				if(result) {
-				
+				if(result[1]) {
 					switch(result[0]) {
 						case 'random':
 							
@@ -169,19 +168,18 @@ function verifyProof(data, file) {
 							if (result) {
 								console.log('The Ledger Proof and the Random Proof contained in ' + parseFileName(file) + ' are valid');
 							} else {
-								console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid, but the Random Proof is invalid');
+								console.log('The Ledger Proof contained in ' + parseFileName(file) + ' is valid, but the Random Proof is invalid');
 							}
 							break;
 						default:
-							console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is valid, but the nested proof is not recognized');
+							console.log('The Ledger Proof contained in ' + parseFileName(file) + ' is valid, but the nested proof is not recognized');
 					}
 				} else {
-					console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid');
+					console.log('The Ledger Proof contained in ' + parseFileName(file) + ' is invalid');
 				}
 
 			} catch (err) {
-				console.log('The Ledger Proof contained in ' + parseFileName(file) + 'is invalid');
-				console.log(err);
+				console.log('The Ledger Proof contained in ' + parseFileName(file) + ' is valid, but the subproof failed with error:' + err);
 			}
 			break;
 		default:
@@ -223,7 +221,6 @@ function getProofType(proof) {
 
 	for (var i = 0; i < proofSlice.length; i++) {
 		var proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
-
 		if (proofHeader === proofSlice[i].content) {
 			return proofSlice[i].proofName;
 		}
