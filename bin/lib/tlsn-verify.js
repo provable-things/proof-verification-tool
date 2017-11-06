@@ -47,7 +47,7 @@ exports.verify = (data, servers) => {
 
 	// v2 support for time
 	if (version === 2) {
-		var time = data.slice(offset, offset += 4)
+		var time = data.slice(offset, offset += 4);
 	}
 	// start verification
 	try {
@@ -96,7 +96,7 @@ exports.verify = (data, servers) => {
 		}
 
 		if (!commitHashVerified) {
-			throw new Error('Matching notary server not found')
+			throw new Error('Matching notary server not found');
 		}
 
 		//Disable console log, needless verbose output from TLSNClientSession
@@ -130,12 +130,11 @@ exports.verify = (data, servers) => {
 		console.log = saveConsole;
 		return [html_with_headers, commonName, data, notary_pubkey];
 	} catch (err) {
-		if (typeof saveConsole !== 'undefined')
-			console.log = saveConsole;
+		if (typeof saveConsole !== 'undefined') console.log = saveConsole;
 
-		throw ('TLSNotary Verification Error: ' + err + ` ` + err.stack);
+		throw 'TLSNotary Verification Error: ' + err + ` ` + err.stack;
 	}
-}
+};
 
 function verifyCommitHashSignature(commithash, signature, modulus) {
 	//RSA verification is sig^e mod n, drop the padding and get the last 32 bytes
@@ -188,7 +187,8 @@ function permutator(inputArr) {
 	var results = [];
 
 	function permute(arr, memo) {
-		var cur, memo = memo || [];
+		var cur,
+		    memo = memo || [];
 
 		for (var i = 0; i < arr.length; i++) {
 			cur = arr.splice(i, 1);
@@ -240,8 +240,7 @@ function loadDependencies() {
 		global.navigator = undefined;
 	} else {
 
-		if (typeof window === 'undefined' && typeof self !== 'undefined')
-			window = self;
+		if (typeof window === 'undefined' && typeof self !== 'undefined') window = self;
 
 		try {
 			var tlsnUtilsFile = fs.readFileSync('./lib/tlsn/tlsn_utils.js');
@@ -255,7 +254,7 @@ function loadDependencies() {
 			this.eval(tlsnVerifyChain.substr(index));
 			this.eval(String(tlsnClientFile));
 		} catch (err) {
-			throw ('Failed to load dependencies: ' + e + ' | Stack: ' + e.stack);
+			throw 'Failed to load dependencies: ' + e + ' | Stack: ' + e.stack;
 		}
 	}
 }

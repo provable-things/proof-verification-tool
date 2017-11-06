@@ -2,7 +2,7 @@
   "name": "oraclize-proof-verifier",
   "version": "0.1.0",
   "description": "Verifies Oraclize proofs locally",
-  "main": "proofVerifier.js",
+  "main": "./lib/index.js",
   "dependencies": {
     "asn1.js": "^4.9.0",
     "atob": "^2.0.3",
@@ -12,7 +12,9 @@
     "cbor": "^3.0.0",
     "crypto-js": "^3.1.8",
     "get-random-values": "^1.2.0",
+    "isomorphic-fetch": "^2.2.1",
     "jsrsasign": "^6.2.1",
+    "ramda": "^0.25.0",
     "sha256": "^0.2.0",
     "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
@@ -32,5 +34,22 @@
     ]
   },
   "author": "Oraclize",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.2",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-preset-flow": "^6.23.0",
+    "babelify": "^8.0.0",
+    "browserify": "^14.5.0",
+    "eslint": "^4.10.0",
+    "eslint-plugin-flowtype": "^2.39.1",
+    "flow-bin": "^0.58.0"
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/babel ./src -d ./lib",
+		"test": "node -e \"require('./lib/test.js').runTest()\""
+  }
 }
