@@ -2,7 +2,7 @@
 
 var RootCerts = {};
 
-//var certs = require('./rootcerts.json');
+const certs = require('./rootcerts.js');
 
 // Use hash table for efficiency:
 var trusted = Object.keys(certs).reduce(function(trusted, key) {

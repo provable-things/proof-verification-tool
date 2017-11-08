@@ -2,13 +2,18 @@
 // whose code is slightly modified but mostly kept intact
 // for potential web re-use
 
-const fs = require('fs');
-const vm = require('vm');
 const sha256 = require('sha256');
 const BigInteger = require('big-integer');
-const oracle = require('./oraclize/oracles.js');
+const tlsnVerifyChain = require('./tlsn/verifychain/verifychain.js');
+const tlsnClientFile = require('./tlsn/tlsn.js');
 
-loadDependencies();
+const Certificate = tlsnVerifyChain.Certificate;
+const verifyCertChain = tlsnVerifyChain.verifyCertChain;
+const TLSNClientSession = tlsnClientFile.TLSNClientSession;
+const decrypt_html = tlsnClientFile.decrypt_html;
+
+
+// loadDependencies();
 
 // Verify TLSNotary and check if is valid
 var exports = module.exports = {};
@@ -47,7 +52,7 @@ exports.verify = (data, servers) => {
 
   // v2 support for time
   if (version === 2) {
-    var time = data.slice(offset, offset += 4)
+    var time = data.slice(offset, offset += 4);
   }
   // start verification
   try {
@@ -173,7 +178,6 @@ function getCommonName(cert) {
   }
   return 'unknown';
 }
-
 function verifyCert(chain) {
   var chainperms = permutator(chain);
   for (var i = 0; i < chainperms.length; i++) {
@@ -203,59 +207,4 @@ function permutator(inputArr) {
   }
 
   return permute(inputArr);
-}
-
-function loadDependencies() {
-  console.log('Loading TLSNotary dependencies...');
-
-  //For getting original TLSN js scripts to work
-  //Rather than making custom files and requiring additional user trust
-  global.CryptoJS = require('crypto-js');
-  global.KJUR = require('jsrsasign');
-
-  var tlsnCertList = fs.readFileSync('./tlsn/verifychain/rootcertslist.js');
-  var tlsnRootCerts = fs.readFileSync('./tlsn/verifychain/rootcerts.js');
-  var tlsnVerifyChain = fs.readFileSync('./tlsn/verifychain/verifychain.js');
-  var tlsnClientFile = fs.readFileSync('./tlsn/tlsn.js');
-
-  if (typeof navigator === 'undefined') {
-    //enables require on V8 VM
-    global.require = require;
-
-    vm.runInThisContext(tlsnCertList);
-    vm.runInThisContext(tlsnRootCerts);
-    vm.runInThisContext(tlsnVerifyChain);
-
-    global.require = null;
-
-    //Remove browser-requirement if not browser
-    //emulating chrome
-    global.navigator = {};
-    global.navigator.userAgent = 'chrome';
-    //alternative
-    //tlsnClientFile = tlsnClientFile.replace(/navigator.userAgent.toLowerCase\(\).indexOf\(\'chrome\'\) \> -1;/, 'true')
-    vm.runInThisContext(tlsnClientFile);
-
-    //unload
-    global.navigator = undefined;
-  } else {
-
-    if (typeof window === 'undefined' && typeof self !== 'undefined')
-      window = self;
-
-    try {
-      var tlsnUtilsFile = fs.readFileSync('./tlsn/tlsn_utils.js');
-      this.eval(String(tlsnUtilsFile));
-      this.eval(String(tlsnCertList));
-      this.eval(String(tlsnRootCerts));
-      this.asn1 = require('asn1.js');
-      this.Buffer = require('buffer').Buffer;
-      tlsnVerifyChain = String(tlsnVerifyChain);
-      var index = tlsnVerifyChain.indexOf('var origcerts');
-      this.eval(tlsnVerifyChain.substr(index));
-      this.eval(String(tlsnClientFile));
-    } catch (err) {
-      throw ('Failed to load dependencies: ' + e + ' | Stack: ' + e.stack);
-    }
-  }
 }

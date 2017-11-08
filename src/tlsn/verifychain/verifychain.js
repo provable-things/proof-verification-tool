@@ -1,8 +1,10 @@
 'use strict';
 
+const origcerts = require('./rootcerts.js');
+let certs = origcerts;
+
 var asn1 = require('asn1.js');
 var Buffer = require('buffer').Buffer;
-var origcerts = certs;
 
 //--------BEGIN copied from https://github.com/indutny/asn1.js/blob/master/rfc/3280/index.js
 var AlgorithmIdentifier = asn1.define('AlgorithmIdentifier', function () {
@@ -12,7 +14,7 @@ var AlgorithmIdentifier = asn1.define('AlgorithmIdentifier', function () {
 	);
 });
 
-var Certificate = asn1.define('Certificate', function () {
+const Certificate = asn1.define('Certificate', function () {
 	this.seq().obj(
 		this.key('tbsCertificate').use(TBSCertificate),
 		this.key('signatureAlgorithm').use(AlgorithmIdentifier),
@@ -435,3 +437,6 @@ var getTBSCertificate = function (data, siglen) {
 
 //this must trigger after asn1.js was loaded, so putting this to the bottom
 fixcerts();
+
+module.exports.Certificate = Certificate;
+module.exports.verifyCertChain = verifyCertChain;
