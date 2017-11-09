@@ -1,5 +1,6 @@
 var utils = require('./src/load-utils.js');
 const oracle = require('./src/oraclize/oracles.js');
+const servers = require('./src/oraclize/servers.js').servers;
 var fs = require('fs');
 
 checkVersion();
@@ -19,9 +20,10 @@ function checkVersion() {
 
 // Feches any files in proof folder and verifies them
 async function autoVerify() {
+  console.log(oracle.servers);
   const proofs = fs.readdirSync('../proof/');
   console.log('Verify TLSNotary servers validity');
-  verifiedServers = await getVerifiedServers();
+  verifiedServers = await oracle.getVerifiedServers(servers);
   console.log('TLSNotary servers validity caching ended');
 
   if (proofs.length === 0) {
@@ -40,38 +42,6 @@ async function autoVerify() {
 async function parseProofFile(proofFile) {
   const parsedProof = new Uint8Array(fs.readFileSync(proofFile));
   await verifyProof(parsedProof, proofFile);
-}
-
-
-async function getVerifiedServers() {
-  var mainPubKey;
-  var vServers = [];
-
-  for (var j = 1; j < 3; j++) {
-    var servers = oracle.servers[j];
-    for (var i = 0; i < servers.length; i++) {
-      var server = servers[i];
-      try {
-        switch (j) {
-        case 1:
-          mainPubKey = await oracle.validateServer(server, 'main', mainPubKey);
-          await oracle.validateServer(server, 'sig', mainPubKey);
-          break;
-        default:
-          mainPubKey = await oracle.validateServer(server, '', mainPubKey);
-        }
-        console.log('Valid server:' + server.name);
-      } catch (err) {
-        if (err.name === 'aws_request_failed' && j === 1) {
-          console.log('Pagesigner notary server v1, verification status is unknown: the server might be offline or non-existent anymore');
-        } else {
-          console.log(server.name + ': skipping invalid server');
-        }
-      }
-      vServers.push(server);
-    }
-  }
-  return vServers;
 }
 
 async function verifyProof(data, file) {

@@ -18,7 +18,7 @@ const decrypt_html = tlsnClientFile.decrypt_html;
 // Verify TLSNotary and check if is valid
 var exports = module.exports = {};
 
-exports.verify = (data, servers) => {
+exports.verify = (data, servers, verifiedServers) => {
   data = ua2ba(data);
   var offset = 0;
   var header = ba2str(data.slice(offset, offset += 29));

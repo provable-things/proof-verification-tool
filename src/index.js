@@ -2,30 +2,51 @@
 
 import R from 'ramda';
 import {reduceDeleteValue} from './helpers.js';
-// import {ver`
+import {verifiedServers, avaibleServers} from './oraclize/oracles.js';
 
-type ProofName =
+type MainProof =
   | 'proofType_TLSNotary'
   | 'proofType_Android'
   | 'proofType_Ledger'
   | 'proofType_Native' // TODO not implemented yet
   | 'proofType_NONE'
 
-type ProofType = {
+type ExtensionProof =
+  | 'computation'
+  | 'proofType_NONE'
+
+type ShiledProof =
+  | 'type1'
+  | 'proofType_NONE'
+
+type ProofType = MainProof | ExtensionProof | ShiledProof 
+
+type ProofStructure = {
   slice: number,
   content: string,
-  proofName: ProofName,
+  proofName: ProofType,
 }
 
-type Proof = {
-  proofName: ProofName,
-  proofVerificationStatus: 'verified' | 'unverified' | 'verifiedWithComputation',
+export type ParsedProof = {
+  mainProof: {
+    proofType: MainProof,
+    isVerified: boolean,
+    status: 'succes' | 'error'
+  },
+  extensionProof: ?{
+    proofType: ExtensionProof, 
+    isVerified: boolean,
+    status: 'succes' | 'error'
+  },
+  proofShield: ?{
+    proofType: ShiledProof, 
+    isVerified: boolean,
+    status: 'succes' | 'error' },
   message: string | {type: 'hex', value: string},
   proofId: string,
 }
 
-
-export const getProofType = (proof: string): ProofName => {
+export const getProofType = (proof: string): ProofType => {
   const supportedProofs = [
     {
       slice: 27,
@@ -44,10 +65,10 @@ export const getProofType = (proof: string): ProofName => {
     }
   ];
 
-  const compareProof = R.curry((proof: string, proofType: ProofType): ProofName => {
-    const proofHeader = proof.slice(0, proofType.slice);
-    if (proofHeader === proofType.content) {
-      return proofType.proofName;
+  const compareProof = R.curry((proof: string, proofStructure: ProofStructure): ProofType => {
+    const proofHeader = proof.slice(0, proofStructure.slice);
+    if (proofHeader === proofStructure.content) {
+      return proofStructure.proofName;
     }
     return 'proofType_NONE';
   });
@@ -57,40 +78,14 @@ export const getProofType = (proof: string): ProofName => {
   )(supportedProofs);
 };
 
-export const verifyProof = (proof: string, callback: any): Proof => {
-  const proofName = getProofType(proof);
-  let proofName;
-  let proofVerificationStatus;
-  let message;
-  let proofId;
-  switch (proofName) {
-    case 'proofType_TLSNotary':
-      proofName = 'proofType_TLSNotary';
-      proofVerificationStatus = verifyTlsn(proof
+export const verifyProof = (proof: string, callback: any): ParsedProof => {
   const parsedProof = {
-    proofName: 'proofType_TLSNotary',
-    proofVerificationStatus: 'verified',
+    mainProof: {proofType: 'proofType_TLSNotary', status: 'succes', isVerified: true},
+    extensionProof: null,
+    proofShield: null,
     message: 'ciao',
     proofId: '1500',
   };
   callback && callback(parsedProof);
   return parsedProof;
 };
-
-// function isComputationProof(html) {
-//   const compCheck1 = '</GetConsoleOutputResponse>';
-//   // Ensure GetConsoleOutputResponse is last element
-//   const validator1 = html.indexOf(compCheck1) + compCheck1.length - html.length;
-// 
-//   const compCheck2 = 'Server: AmazonEC2';
-//   const validator2 = html.indexOf(compCheck2);
-// 
-//   return (validator1 === 0 && validator2 !== -1);
-// }
-
-const verifyTlsn = (proof) => {
-  const verificationResult = tlsn.verify(data, verifiedServers); // -> qui abbiamo gia verificato che il tlsn sia valid
-  const decryptedHtml = verificationResult[0];
-  isComputationProof(decryptedHtml)
-  computation.verifyComputation(decryptedHtml);
-}
