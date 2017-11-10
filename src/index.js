@@ -3,6 +3,7 @@
 import R from 'ramda';
 import {reduceDeleteValue} from './helpers.js';
 import {verifiedServers, notVerifiableServers} from './oraclize/oracles.js';
+import {verifyTLS} from './tlsn-verify.js';
 
 type MainProof =
   | 'proofType_TLSNotary'
@@ -22,7 +23,16 @@ type ShiledProof =
 type VerificationStatus =
   | 'succes'
   | 'faild'
-  | 'computation: server not verified'
+  | TLSNStatus
+
+type TLSNStatus =
+  | ['faild', 'wrong header']
+  | ['faild', 'wrong version']
+  | ['faild', 'invalid .pgsg length']
+  | ['faild', 'commit hash mismatch']
+  | ['faild', 'matching notary server not found']
+  | ['succes', 'matching notary server not on-line']
+  | ['succes', 'no exceptions']
 
 type ProofType = MainProof | ExtensionProof | ShiledProof 
 
@@ -95,9 +105,17 @@ export const verifyProof = (proof: string, callback: any): ParsedProof => {
   return parsedProof;
 };
 
-const verifyTlsn = (proof: string): [boolean, VerificationStatus] => {
-  return 3;
-}
-const verifyComputation = (proof: string, server) => {
-  return 3;
-}
+const verifyTlsn = (
+  proof: string,
+  verifiedServers: Array<any>,
+  notVerifiableServers: Array<any>): {parsedProof: string, isVerified: boolean, status: VerificationStatus} => {
+
+  const verifiedTlsn = verifyTLS(proof, verifiedServers, notVerifiableServers);
+  const isVerified = verifiedTlsn.status[0] === 'succes' ? true : false; 
+  const status = verifiedTlsn.status;//['succes', 'matching notary server not on-line'];
+  const parsedProof = verifiedTlsn.parsedData;
+  return {isVerified, status, parsedProof};
+};
+// const verifyComputation = (proof: string, server) => {
+//   return 3;
+// }

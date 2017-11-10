@@ -1,7 +1,10 @@
 'use strict';
+const atob = require('atob');
+const tlsn_utils = require('./tlsn/tlsn_utils.js');
+var r = require('jsrsasign');
 
 // AWS RSA public key (US East (N. Virginia))
-const awsPublicCertificateRSA = `-----BEGIN CERTIFICATE-----\n\
+const awsPublicCertificateRSA = '-----BEGIN CERTIFICATE-----\n\
 MIIDIjCCAougAwIBAgIJAKnL4UEDMN/FMA0GCSqGSIb3DQEBBQUAMGoxCzAJBgNV\n\
 BAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdTZWF0dGxlMRgw\n\
 FgYDVQQKEw9BbWF6b24uY29tIEluYy4xGjAYBgNVBAMTEWVjMi5hbWF6b25hd3Mu\n\
@@ -19,85 +22,80 @@ em9uYXdzLmNvbYIJAKnL4UEDMN/FMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEF\n\
 BQADgYEAFYcz1OgEhQBXIwIdsgCOS8vEtiJYF+j9uO6jz7VOmJqO+pRlAbRlvY8T\n\
 C1haGgSI/A1uZUKs/Zfnph0oEI0/hu1IIJ/SKBDtN5lvmZ/IzbOPIJWirlsllQIQ\n\
 7zvWbGd9c9+Rm3p04oTvhup99la7kZqevJK0QRdD/6NpCKsqP/0=\n\
------END CERTIFICATE-----`;
+-----END CERTIFICATE-----';
 
 const awsTrustedAMIlist = ['ami-30176327', 'ami-3200c65d', 'ami-84f6f093', 'ami-1c588d73', 'ami-9cde7af3'];
 
 module.exports = {
-	verifyComputation: function (rawHtml, archive) {
-		try {
-			const bodyHtml = rawHtml.substr(rawHtml.indexOf('\r\n\r\n<?xml') + 4);
-			const awsXML = bodyHtml;
-			var awsOutputDirty = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]).split('\n');
-			var awsOutputClean = [];
-			for (var i = 0; i < awsOutputDirty.length; i++) {
-				if (awsOutputDirty[i].substr(0, 2) !== ' *') {
-					awsOutputClean.push(awsOutputDirty[i]);
-				}
-			}
-			var awsOutput = awsOutputClean.join('\n');
+  verifyComputation: function (rawHtml) {
+    try {
+      const bodyHtml = rawHtml.substr(rawHtml.indexOf('\r\n\r\n<?xml') + 4);
+      const awsXML = bodyHtml;
+      var awsOutputDirty = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]).split('\n');
+      var awsOutputClean = [];
+      for (var i = 0; i < awsOutputDirty.length; i++) {
+        if (awsOutputDirty[i].substr(0, 2) !== ' *') {
+          awsOutputClean.push(awsOutputDirty[i]);
+        }
+      }
+      var awsOutput = awsOutputClean.join('\n');
 
-			var oraclizeResult = awsOutput.match(/ORACLIZE_RESULT:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
-			oraclizeResult = oraclizeResult.substr(7, oraclizeResult.length - 7).split('\r\r\n').join('');
-			var oraclizeDoc = awsOutput.match(/ORACLIZE_DOC:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
-			oraclizeDoc = oraclizeDoc.substr(4, oraclizeDoc.length - 4).split('\r\r\n').join('');
-			var oraclizeSig = awsOutput.match(/ORACLIZE_SIG:[\s\S]*$/g)[0].split('ORACLIZE_')[1];
-			oraclizeSig = oraclizeSig.substr(4, oraclizeSig.indexOf('[') - 4).split('\r\r\n').join('');
-			var oraclizeUserData = awsOutput.match(/ORACLIZE_USERDATA:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
-			oraclizeUserData = oraclizeUserData.substr(9, oraclizeUserData.length - 9).split('\r\r\n').join('');
-			const decodedResult = atob(oraclizeResult);
-			const decodedDoc = JSON.parse(atob(oraclizeDoc));
-			var awsSignature = atob(oraclizeSig).replace(/\n/g, '');
+      var oraclizeDoc = awsOutput.match(/ORACLIZE_DOC:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
+      oraclizeDoc = oraclizeDoc.substr(4, oraclizeDoc.length - 4).split('\r\r\n').join('');
+      var oraclizeSig = awsOutput.match(/ORACLIZE_SIG:[\s\S]*$/g)[0].split('ORACLIZE_')[1];
+      oraclizeSig = oraclizeSig.substr(4, oraclizeSig.indexOf('[') - 4).split('\r\r\n').join('');
+      const decodedDoc = JSON.parse(atob(oraclizeDoc));
+      var awsSignature = atob(oraclizeSig).replace(/\n/g, '');
 
-			// convert from base64 to hex
-			awsSignature = ba2hex(str2ba(atob(awsSignature)));
+      // convert from base64 to hex
+      awsSignature = tlsn_utils.ba2hex(tlsn_utils.str2ba(atob(awsSignature)));
 
-			// check for trusted AMI
-			const awsAMIvalid = (awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1) ? true : false;
+      // check for trusted AMI
+      const awsAMIvalid = (awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1) ? true : false;
 
-			if (!awsAMIvalid) {
-				throw new Error('unrecognized AMI provided');
-			}
-			// get instanceId from json doc & xml (from body html)
-			const awsInstanceIdDoc = decodedDoc.instanceId;
-			const awsInstanceIdXML = awsXML.match(/<instanceId>(.*?)<\/instanceId>/)[1];
+      if (!awsAMIvalid) {
+        throw new Error('unrecognized AMI provided');
+      }
+      // get instanceId from json doc & xml (from body html)
+      const awsInstanceIdDoc = decodedDoc.instanceId;
+      const awsInstanceIdXML = awsXML.match(/<instanceId>(.*?)<\/instanceId>/)[1];
 
-			// check if the instance id is the same
-			const awsInstanceMatch = awsInstanceIdDoc === awsInstanceIdXML;
+      // check if the instance id is the same
+      const awsInstanceMatch = awsInstanceIdDoc === awsInstanceIdXML;
 
-			if (!awsInstanceMatch) {
-				throw new Error('instance ID mismatch');
-			}
+      if (!awsInstanceMatch) {
+        throw new Error('instance ID mismatch');
+      }
 
-			// Ensure document signature passes verification
-			const verifier = new KJUR.crypto.Signature({alg: 'SHA256withRSA'});
-			verifier.init(awsPublicCertificateRSA);
-			verifier.updateString(atob(oraclizeDoc));
-			const awsSignatureValid = verifier.verify(awsSignature);
+      // Ensure document signature passes verification
+      const verifier = new r.KJUR.crypto.Signature({alg: 'SHA256withRSA'});
+      verifier.init(awsPublicCertificateRSA);
+      verifier.updateString(atob(oraclizeDoc));
+      const awsSignatureValid = verifier.verify(awsSignature);
 
-			if (!awsSignatureValid) {
-				throw new Error('signature invalid');
-			}
-			// archive checksum is completed on server-side
-			// with the publicly trusted AMI
-			const archiveChecksumPass = awsAMIvalid;
+      if (!awsSignatureValid) {
+        throw new Error('signature invalid');
+      }
+      // archive checksum is completed on server-side
+      // with the publicly trusted AMI
+      const archiveChecksumPass = awsAMIvalid;
 
-			if (!archiveChecksumPass) {
-				throw new Error('archive checksum failed');
-			}
-		} catch (err) {
-			throw new Error('Computation verification error ' + err);
-		}
-	},
-	getComputationResult: function (rawHtml, query) {
-		try {
-			const bodyHtml = rawHtml.substr(rawHtml.indexOf('\n\n<?xml') + 2);
-			const awsXML = bodyHtml;
-			const awsOutput = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]);
-			const oraclizeResult = awsOutput.match(/^ORACLIZE_RESULT:.*$/m)[0].substr(16);
-			return atob(oraclizeResult);
-		} catch (err) {
-			throw new Error('Computation result parsing error ' + err);
-		}
-	}
-}
+      if (!archiveChecksumPass) {
+        throw new Error('archive checksum failed');
+      }
+    } catch (err) {
+      throw new Error('Computation verification error ' + err);
+    }
+  },
+  getComputationResult: function (rawHtml) {
+    try {
+      const bodyHtml = rawHtml.substr(rawHtml.indexOf('\n\n<?xml') + 2);
+      const awsXML = bodyHtml;
+      const awsOutput = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]);
+      const oraclizeResult = awsOutput.match(/^ORACLIZE_RESULT:.*$/m)[0].substr(16);
+      return atob(oraclizeResult);
+    } catch (err) {
+      throw new Error('Computation result parsing error ' + err);
+    }
+  }
+};

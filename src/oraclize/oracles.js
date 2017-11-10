@@ -333,8 +333,8 @@ const  getVerifiedServers = async (serversList) => {
 };
 
 const avaibleServers = R.flatten(servers);
-const verifiedServers = getVerifiedServers(servers);
-const notVerifiableServers = subtractList(avaibleServers, verifiedServers);
+const verifiedServers = (async () => await getVerifiedServers(servers))();
+const notVerifiableServers = (async () => subtractList(avaibleServers, await verifiedServers))();
 
 module.exports.getVerifiedServers = getVerifiedServers;
 module.exports.validateServer = validateServer;

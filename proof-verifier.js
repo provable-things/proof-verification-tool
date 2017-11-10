@@ -10,7 +10,7 @@ checkVersion();
 var tlsn;
 var computation;
 var android;
-var verifiedServers = [];
+var notVerifiableServers = [];
 
 function checkVersion() {
   if (process.version.substr(1, 1) === '0') {
@@ -22,10 +22,10 @@ function checkVersion() {
 
 // Feches any files in proof folder and verifies them
 async function autoVerify() {
-  console.log(oracle.servers);
   const proofs = fs.readdirSync('../proof/');
   console.log('Verify TLSNotary servers validity');
-  verifiedServers = await oracle.getVerifiedServers(servers);
+  const verifiedServers = await oracle.verifiedServers;
+  const notVerifiableServers = await oracle.notVerifiableServers;
   console.log('TLSNotary servers validity caching ended');
 
   if (proofs.length === 0) {
@@ -36,17 +36,17 @@ async function autoVerify() {
   for (var h = 0; h < proofs.length; h++) {
     var path = '../proof/' + proofs[h];
     if (!fs.lstatSync(path).isDirectory()) {
-      await parseProofFile(path);
+      await parseProofFile(path, verifiedServers, notVerifiableServers);
     }
   }
 }
 
-async function parseProofFile(proofFile) {
+async function parseProofFile(proofFile, verifiedServers, notVerifiableServers) {
   const parsedProof = new Uint8Array(fs.readFileSync(proofFile));
-  await verifyProof(parsedProof, proofFile);
+  await verifyProof(parsedProof, proofFile, verifiedServers, notVerifiableServers);
 }
 
-async function verifyProof(data, file) {
+async function verifyProof(data, file, verifiedServers, notVerifiableServers) {
   const type = getProofType(data);
   console.log('\n##############################################\n' + parseFileName(file));
 
@@ -59,7 +59,7 @@ async function verifyProof(data, file) {
 
       console.log('Verifying TLSNotary proof...');
 
-      const verificationResult = tlsn.verify(data, verifiedServers);
+      const verificationResult = tlsn.verify(data, verifiedServers, notVerifiableServers);
       console.log('TLSNotary proof successfully verified!');
 
       const decryptedHtml = verificationResult[0];

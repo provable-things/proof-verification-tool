@@ -10,17 +10,15 @@ const tlsn_utils = require('./tlsn/tlsn_utils.js');
 const Buffer = require('buffer').Buffer;
 
 const Certificate = tlsnVerifyChain.Certificate;
-const verifyCertChain = tlsnVerifyChain.verifyCertChain;
+// const verifyCertChain = tlsnVerifyChain.verifyCertChain;
 const TLSNClientSession = tlsnClientFile.TLSNClientSession;
 const decrypt_html = tlsnClientFile.decrypt_html;
 
 
 // loadDependencies();
 
-// Verify TLSNotary and check if is valid
-var exports = module.exports = {};
-
-exports.verify = (data, servers) => {
+// OLD version do not work on that function but on verifyTLS
+const verify = (data, servers, notVerifiableServers) => {
   data = tlsn_utils.ua2ba(data);
   var offset = 0;
   var header = tlsn_utils.ba2str(data.slice(offset, offset += 29));
@@ -71,13 +69,14 @@ exports.verify = (data, servers) => {
 
     var commonName = getCommonName(chain[0]);
 
+    // TODO what the below code do???
     // verify cert
     // not throwing but only logging if verbose mode is on
     // due to self-signed certs that may fail here, which
     // shouldn't invalidate the verification
-    if (!verifyCert(chain)) {
-      console.log('certificate verification failed');
-    }
+    // if (!verifyCert(chain)) {
+    //   //TODO console.log('certificate verification failed');
+    // }
     var modulus = getModulus(chain[0]);
 
     // Verify commit hash
@@ -94,13 +93,28 @@ exports.verify = (data, servers) => {
 
     var signingKey;
     var commitHashVerified = false;
+    var isServerVerified = 'yes';
 
-    for (var i = 0; i < servers.length; i++) {
-      var server = servers[i];
+    for (let i = 0; i < servers.length; i++) {
+      let server = servers[i];
       signingKey = server.sig.modulus;
       if (verifyCommitHashSignature(signed_data, sig, signingKey)) {
         commitHashVerified = true;
         break;
+      }
+    }
+    if (! commitHashVerified) {
+      for (let i = 0; i < notVerifiableServers.length; i++) {
+        let server = notVerifiableServers[i];
+        if (server === undefined) {
+          continue;
+        }
+        signingKey = server.sig.modulus;
+        if (verifyCommitHashSignature(signed_data, sig, signingKey)) {
+          commitHashVerified = true;
+          isServerVerified = 'no';
+          break;
+        }
       }
     }
 
@@ -130,7 +144,7 @@ exports.verify = (data, servers) => {
     s.server_connection_state.IV = s.IV_after_finished;
     var html_with_headers = decrypt_html(s);
 
-    return [html_with_headers, commonName, data, notary_pubkey];
+    return [html_with_headers, commonName, data, notary_pubkey, isServerVerified];
   } catch (err) {
     throw ('TLSNotary Verification Error: ' + err + ' ' + err.stack);
   }
@@ -172,33 +186,73 @@ function getCommonName(cert) {
   }
   return 'unknown';
 }
-function verifyCert(chain) {
-  var chainperms = permutator(chain);
-  for (var i = 0; i < chainperms.length; i++) {
-    if (verifyCertChain(chainperms[i])) {
-      return true;
+// function verifyCert(chain) {
+//   var chainperms = permutator(chain);
+//   for (var i = 0; i < chainperms.length; i++) {
+//     if (verifyCertChain(chainperms[i])) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
+
+// function permutator(inputArr) {
+//   var results = [];
+// 
+//   function permute(arr, _memo) {
+//     var cur, memo = _memo || [];
+// 
+//     for (var i = 0; i < arr.length; i++) {
+//       cur = arr.splice(i, 1);
+//       if (arr.length === 0) {
+//         results.push(memo.concat(cur));
+//       }
+//       permute(arr.slice(), memo.concat(cur));
+//       arr.splice(i, 0, cur[0]);
+//     }
+// 
+//     return results;
+//   }
+// 
+//   return permute(inputArr);
+// }
+const verifyTLS = (data, verifiedServers, notVerifiableServers) => {
+  let status;
+  let parsedData;
+  try {
+    const verifiedProof = verify(data, verifiedServers, notVerifiableServers);
+    const isServerVerified = verifiedProof[4];
+    parsedData = verifiedProof[0];
+    if (isServerVerified === 'no') {
+      status = ['succes', 'matching notary server not on-line'];
+    }
+    else {
+      status = ['succes', 'no exceptions'];
     }
   }
-  return false;
-}
-
-function permutator(inputArr) {
-  var results = [];
-
-  function permute(arr, _memo) {
-    var cur, memo = _memo || [];
-
-    for (var i = 0; i < arr.length; i++) {
-      cur = arr.splice(i, 1);
-      if (arr.length === 0) {
-        results.push(memo.concat(cur));
-      }
-      permute(arr.slice(), memo.concat(cur));
-      arr.splice(i, 0, cur[0]);
+  catch(err) {
+    parsedData = '';
+    switch(err.message) {
+    case 'wrong header':
+      status = ['faild', 'wrong header'];
+      break;
+    case 'wrong version':
+      status = ['faild', 'wrong version'];
+      break;
+    case 'invalid .pgsg length':
+      status = ['faild', 'invalid .pgsg length'];
+      break;
+    case 'commit hash mismatch':
+      status = ['faild', 'commit hash mismatch'];
+      break;
+    case 'Matching notary server not found':
+      status = ['faild', 'matching notary server not found'];
+      break;
+    default:
+      throw(err);
     }
-
-    return results;
   }
-
-  return permute(inputArr);
-}
+  return {status, parsedData};
+};
+module.exports.verify = verify;
+module.exports.verifyTLS = verifyTLS;
