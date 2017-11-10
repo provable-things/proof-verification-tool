@@ -3,6 +3,7 @@ var URLSafeBase64 = require('urlsafe-base64');
 var r = require('jsrsasign');
 var request = require('isomorphic-fetch');
 var asn = require('asn1.js');
+const jsonSettings = require('./settings/settings.json');
 
 var exports = module.exports = {};
 
@@ -66,7 +67,6 @@ exports.verify = async function(data, pemEncodedChain, rawSettings) {
 };
 
 exports.getVerificationParameters = function () {
-  const jsonSettings = fs.readFileSync('./settings/settings.json');
   return jsonSettings;
 };
 

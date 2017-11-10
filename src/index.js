@@ -2,7 +2,7 @@
 
 import R from 'ramda';
 import {reduceDeleteValue} from './helpers.js';
-import {verifiedServers, avaibleServers} from './oraclize/oracles.js';
+import {verifiedServers, notVerifiableServers} from './oraclize/oracles.js';
 
 type MainProof =
   | 'proofType_TLSNotary'
@@ -19,6 +19,11 @@ type ShiledProof =
   | 'type1'
   | 'proofType_NONE'
 
+type VerificationStatus =
+  | 'succes'
+  | 'faild'
+  | 'computation: server not verified'
+
 type ProofType = MainProof | ExtensionProof | ShiledProof 
 
 type ProofStructure = {
@@ -31,17 +36,17 @@ export type ParsedProof = {
   mainProof: {
     proofType: MainProof,
     isVerified: boolean,
-    status: 'succes' | 'error'
+    status: VerificationStatus
   },
   extensionProof: ?{
     proofType: ExtensionProof, 
     isVerified: boolean,
-    status: 'succes' | 'error'
+    status: VerificationStatus
   },
   proofShield: ?{
     proofType: ShiledProof, 
     isVerified: boolean,
-    status: 'succes' | 'error' },
+    status: VerificationStatus },
   message: string | {type: 'hex', value: string},
   proofId: string,
 }
@@ -89,3 +94,10 @@ export const verifyProof = (proof: string, callback: any): ParsedProof => {
   callback && callback(parsedProof);
   return parsedProof;
 };
+
+const verifyTlsn = (proof: string): [boolean, VerificationStatus] => {
+  return 3;
+}
+const verifyComputation = (proof: string, server) => {
+  return 3;
+}

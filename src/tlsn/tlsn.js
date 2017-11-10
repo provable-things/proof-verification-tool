@@ -1,14 +1,8 @@
 const CryptoJS = require('crypto-js');
-const KJUR = require('jsrsasign');
+const assert = require('assert');
+const tlsn_utils = require('./tlsn_utils');
 
 var global_tlsver = [0x03, 0x02];
-
-if (typeof window === 'undefined' && typeof global !== 'undefined') {
-  window = global;
-}
-
-global.CryptoJS = require('crypto-js');
-global.KJUR = require('jsrsasign');
 
 //#constants
 var md5_hash_len = 16;
@@ -30,7 +24,6 @@ var h_cert = 0x0b; //#Certificate
 var h_shd = 0x0e; //#Server Hello Done
 var h_cke = 0x10; //#Client Key Exchange
 var h_fin = 0x14; //#Finished
-var tls_handshake_types = [h_ch, h_sh, h_cert, h_shd, h_cke, h_fin];
 
 
 /*
@@ -63,38 +56,38 @@ function get_cs(cs) {
       return tlsn_cipher_suites[i][cs];
     }
   }
-  throw ("Could not find cs " + cs.toString());
+  throw ('Could not find cs ' + cs.toString());
 }
 
 
 function send_and_recv(command, data, expected_response) {
   return new Promise(function (resolve, reject) {
     var req = get_xhr();
-    req.open("HEAD", "http://" + chosen_notary.IP + ":" + chosen_notary.port, true);
-    req.setRequestHeader("Request", command);
-    req.setRequestHeader("Data", b64encode(data));
-    req.setRequestHeader("UID", random_uid);
+    req.open('HEAD', 'http://' + chosen_notary.IP + ':' + chosen_notary.port, true);
+    req.setRequestHeader('Request', command);
+    req.setRequestHeader('Data', b64encode(data));
+    req.setRequestHeader('UID', random_uid);
     //disable headers which Firefox appends by default
     //however, Chrome doesnt allow setting certain headers
-    req.setRequestHeader("Accept-Language", "");
-    req.setRequestHeader("Accept", "");
+    req.setRequestHeader('Accept-Language', '');
+    req.setRequestHeader('Accept', '');
     if (!is_chrome) {
-      req.setRequestHeader("Host", "");
-      req.setRequestHeader("User-Agent", "");
-      req.setRequestHeader("Accept-Encoding", "");
-      req.setRequestHeader("Connection", "close");
+      req.setRequestHeader('Host', '');
+      req.setRequestHeader('User-Agent', '');
+      req.setRequestHeader('Accept-Encoding', '');
+      req.setRequestHeader('Connection', 'close');
     }
     var timeout = setTimeout(function () {
       reject('Timed out waiting for notary server to respond');
     }, 20 * 1000);
     req.onload = function () {
       clearTimeout(timeout);
-      var response = req.getResponseHeader("Response");
+      var response = req.getResponseHeader('Response');
       if (response !== expected_response) {
         reject('Unexpected response. Expected ' + expected_response + ' but got ' + response);
         return;
       }
-      var b64data = req.getResponseHeader("Data");
+      var b64data = req.getResponseHeader('Data');
       var data = b64decode(b64data);
       console.log('got from oracle', response);
       resolve(data);
@@ -107,7 +100,7 @@ function send_and_recv(command, data, expected_response) {
 
 function prepare_pms(modulus, tryno) {
   isdefined(modulus);
-  if (typeof (tryno) === "undefined") {
+  if (typeof (tryno) === 'undefined') {
     tryno = 1;
   }
   var rsapms2;
@@ -126,14 +119,14 @@ function prepare_pms(modulus, tryno) {
     .then(function (handshake_objects) {
       pms_session.process_server_hello(handshake_objects);
       var comm = 'rcr_rsr_rsname_n';
-      var data = [].concat(pms_session.client_random, pms_session.server_random, str2ba(rs_choice).slice(0, 5), modulus);
-      return send_and_recv(comm, data, "rrsapms_rhmac_rsapms");
+      var data = [].concat(pms_session.client_random, pms_session.server_random, tlsn_utils.str2ba(rs_choice).slice(0, 5), modulus);
+      return send_and_recv(comm, data, 'rrsapms_rhmac_rsapms');
     })
     .then(function (reply_data) {
       var rrsapms2 = reply_data.slice(0, 256);
       pms_session.p_auditor = reply_data.slice(256, 304);
       rsapms2 = reply_data.slice(304);
-      //assert(rsapms2.length === modulus.length, "rsapms2.length === modulus.length");
+      //assert(rsapms2.length === modulus.length, 'rsapms2.length === modulus.length');
       return pms_session.complete_handshake(rrsapms2);
     })
     .then(function (response) {
@@ -144,8 +137,8 @@ function prepare_pms(modulus, tryno) {
       var record_to_find = new TLSRecord();
       record_to_find.__init__(chcis, [0x01], pms_session.tlsver);
       if (response.toString().indexOf(record_to_find.serialized.toString()) < 0) {
-        console.log("PMS trial failed, retrying. (" + response.toString() + ")");
-        throw ("PMS trial failed");
+        console.log('PMS trial failed, retrying. (' + response.toString() + ')');
+        throw ('PMS trial failed');
       }
       return ([pms_session.auditee_secret, pms_session.auditee_padding_secret, rsapms2]);
     });
@@ -185,7 +178,7 @@ function negotiate_crippled_secrets(tlsn_session) {
     })
     .then(function (verify_hmac2) {
       if (!tlsn_session.check_server_ccs_finished(verify_hmac2)) {
-        throw ("Could not finish handshake with server successfully. Audit aborted");
+        throw ('Could not finish handshake with server successfully. Audit aborted');
       }
     });
 }
@@ -193,16 +186,16 @@ function negotiate_crippled_secrets(tlsn_session) {
 
 
 function decrypt_html(tlsn_session) {
-  console.log("will decrypt cs:", tlsn_session.server_connection_state.cipher_suite);
+  console.log('will decrypt cs:', tlsn_session.server_connection_state.cipher_suite);
   var rv = tlsn_session.process_server_app_data_records();
   var plaintext = rv[0];
   var bad_mac = rv[1];
   if (bad_mac) {
-    throw ("ERROR! Audit not valid! Plaintext is not authenticated.");
+    throw ('ERROR! Audit not valid! Plaintext is not authenticated.');
   }
-  var plaintext_str = ba2str(plaintext);
-  var plaintext_dechunked = dechunk_http(plaintext_str);
-  var plaintext_gunzipped = gunzip_http(plaintext_dechunked);
+  var plaintext_str = tlsn_utils.ba2str(plaintext);
+  var plaintext_dechunked = tlsn_utils.dechunk_http(plaintext_str);
+  var plaintext_gunzipped = tlsn_utils.gunzip_http(plaintext_dechunked);
   console.log('returning plaintext of length ' + plaintext_gunzipped.length);
   return plaintext_gunzipped;
 }
@@ -246,7 +239,7 @@ function start_audit(modulus, certhash, name, port, headers, ee_secret, ee_pad_s
     })
     .then(function (handshake_objects) {
       tlsn_session.process_server_hello(handshake_objects);
-      console.log("negotiate_crippled_secrets");
+      console.log('negotiate_crippled_secrets');
       return negotiate_crippled_secrets(tlsn_session);
     })
     .then(function () {
@@ -255,9 +248,9 @@ function start_audit(modulus, certhash, name, port, headers, ee_secret, ee_pad_s
       if (sha256(tlsn_session.server_certificate.asn1cert).toString() != certhash.toString()) {
         throw ('Certificate mismatch');
       }
-      var headers_ba = str2ba(headers);
+      var headers_ba = tlsn_utils.str2ba(headers);
       tlsn_session.build_request(headers_ba);
-      console.log("sent request");
+      console.log('sent request');
       return tlsn_session.sckt.recv(false); //#not handshake flag means we wait on timeout
     })
     .then(function (response) {
@@ -314,9 +307,9 @@ function start_audit(modulus, certhash, name, port, headers, ee_secret, ee_pad_s
 
 function verify_commithash_signature(commithash, signature, modulus) {
   //RSA verification is sig^e mod n, drop the padding and get the last 32 bytes
-  var bigint_signature = new BigInteger(ba2hex(signature), 16);
-  var bigint_mod = new BigInteger(ba2hex(modulus), 16);
-  var bigint_exp = new BigInteger(ba2hex(bi2ba(65537)), 16);
+  var bigint_signature = new BigInteger(tlsn_utils.ba2hex(signature), 16);
+  var bigint_mod = new BigInteger(tlsn_utils.ba2hex(modulus), 16);
+  var bigint_exp = new BigInteger(tlsn_utils.ba2hex(tlsn_utils.bi2ba(65537)), 16);
   var bigint_result = bigint_signature.modPow(bigint_exp, bigint_mod);
   var padded_hash = hex2ba(bigint_result.toString(16));
   //check PKCS v1.5 padding 0001 || ff ff ... ff ff || 00 || data
@@ -367,10 +360,10 @@ function tls_record_decoder(d) {
         break;
       }
     }
-    assert(version_found, "Incompatible TLS version");
-    var l = ba2int(d.slice(3, 5));
+    assert(version_found, 'Incompatible TLS version');
+    var l = tlsn_utils.ba2int(d.slice(3, 5));
     if (d.length < l + 5) {
-      throw ("incomplete TLS record");
+      throw ('incomplete TLS record');
     }
     var fragment = d.slice(5, 5 + l);
     d = d.slice(5 + l);
@@ -404,11 +397,11 @@ function tls_record_fragment_decoder(t, d, args) {
   var validity;
   var mac;
   var rv;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.conn) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.conn) !== 'undefined') {
       conn = args.conn;
     }
-    if (typeof (args.ignore_mac) !== "undefined") {
+    if (typeof (args.ignore_mac) !== 'undefined') {
       ignore_mac = args.ignore_mac;
     }
   }
@@ -425,7 +418,7 @@ function tls_record_fragment_decoder(t, d, args) {
       plaintext = rv[1];
     }
     if (!validity && !ignore_mac) {
-      throw ("Mac failure");
+      throw ('Mac failure');
     }
   } else {
     plaintext = d;
@@ -437,7 +430,7 @@ function tls_record_fragment_decoder(t, d, args) {
       for (var i = 0; i < hs_types_keys.length; i++) {
         hs_types.push(parseInt(hs_types_keys[i]));
       }
-      assert(hs_types.indexOf(plaintext[0]) > -1, "Invalid handshake type");
+      assert(hs_types.indexOf(plaintext[0]) > -1, 'Invalid handshake type');
       constructed_obj = new hs_type_map[plaintext[0]]();
       constructed_obj.__init__({ 'serialized': plaintext });
     } else if (t === appd) {
@@ -450,7 +443,7 @@ function tls_record_fragment_decoder(t, d, args) {
       constructed_obj = new TLSChangeCipherSpec();
       constructed_obj.__init__({ 'serialized': plaintext });
     } else {
-      throw ("Invalid record type");
+      throw ('Invalid record type');
     }
     hlpos.push(constructed_obj);
     plaintext = constructed_obj.discarded;
@@ -478,9 +471,9 @@ TLSRecord.prototype.__init__ = function (ct, fragment, tlsver) {
 };
 TLSRecord.prototype.serialize = function () {
   var check_contents = this.content_type && this.content_version && this._length && this.fragment;
-  assert(check_contents, "Cannot serialize record, data incomplete");
-  assert(this.fragment.length == this._length, "Incorrect record length");
-  this.serialized = [].concat(this.content_type, this.content_version, bi2ba(this._length, { 'fixed': 2 }), this.fragment);
+  assert(check_contents, 'Cannot serialize record, data incomplete');
+  assert(this.fragment.length == this._length, 'Incorrect record length');
+  this.serialized = [].concat(this.content_type, this.content_version, tlsn_utils.bi2ba(this._length, { 'fixed': 2 }), this.fragment);
 };
 
 
@@ -492,10 +485,10 @@ TLSHandshake.prototype.__init__ = function (serialized, handshake_type) {
   this.handshake_type = handshake_type;
   if (serialized) {
     this.serialized = serialized;
-    assert(this.handshake_type == this.serialized[0], "Mismatched handshake type");
+    assert(this.handshake_type == this.serialized[0], 'Mismatched handshake type');
     assert([h_ch, h_sh, h_shd, h_cert, h_cke, h_fin].indexOf(this.handshake_type) > -1,
       'Unrecognized or unimplemented handshake type');
-    this.handshake_record_length = ba2int(this.serialized.slice(1, 4));
+    this.handshake_record_length = tlsn_utils.ba2int(this.serialized.slice(1, 4));
     if (this.serialized.slice(4).length < this.handshake_record_length) {
       throw ('Invalid handshake message length');
     }
@@ -512,10 +505,10 @@ TLSHandshake.prototype.__init__ = function (serialized, handshake_type) {
   }
 };
 TLSHandshake.prototype.serialize = function () {
-  if (typeof (this.serialized) === "undefined") {
+  if (typeof (this.serialized) === 'undefined') {
     this.serialized = [];
   }
-  var len = bi2ba(this.serialized.length, { 'fixed': 3 });
+  var len = tlsn_utils.bi2ba(this.serialized.length, { 'fixed': 3 });
   this.serialized = [].concat(this.handshake_type, len, this.serialized);
 };
 
@@ -533,7 +526,7 @@ TLSClientHello.prototype.__init__ = function (args) {
   var cipher_suites = args.cipher_suites;
   var tlsver = args.tlsver;
   var i;
-  this.typename = "TLSClientHello";
+  this.typename = 'TLSClientHello';
   //TODO default args here
   if (serialized) {
     print('Not implemented instantiation of client hello',
@@ -546,7 +539,7 @@ TLSClientHello.prototype.__init__ = function (args) {
       var cr = [];
       for (i = 0; i < 32; i++) { cr.push(2); }
       //this.client_random = cr;
-      this.client_random = getRandom(32, window);
+      this.client_random = tlsn_utils.getRandom(32);
 
     }
     this.tlsver = tlsver;
@@ -575,12 +568,12 @@ TLSServerHello.prototype.__init__ = function (args) {
   var serialized = args.serialized;
   var server_random = args.server_random;
   var cipher_suites = args.cipher_suites;
-  this.typename = "TLSServerHello";
+  this.typename = 'TLSServerHello';
   if (serialized) {
     this.parent.__init__(serialized, h_sh);
     this.tlsver = this.serialized.slice(4, 6);
     this.server_random = this.serialized.slice(6, 38);
-    this.session_id_length = ba2int([].concat(this.serialized[38]));
+    this.session_id_length = tlsn_utils.ba2int([].concat(this.serialized[38]));
     var remainder;
     if (this.session_id_length !== 0) {
       assert(this.session_id_length == 32, 'Server hello contains unrecognized session id format');
@@ -591,7 +584,7 @@ TLSServerHello.prototype.__init__ = function (args) {
       this.session_id = null;
     }
 
-    this.cipher_suite = ba2int(remainder.slice(0, 2));
+    this.cipher_suite = tlsn_utils.ba2int(remainder.slice(0, 2));
     var cs_keys = [];
     for (var i = 0; i < tlsn_cipher_suites.length; i++) {
       var key = Object.keys(tlsn_cipher_suites[i])[0];
@@ -603,7 +596,7 @@ TLSServerHello.prototype.__init__ = function (args) {
     //#At end of serialized instantiation, we have defined server
     //#random and cipher suite
   } else {
-    print("Not implemented instantiation of server hello without serialization; this is a client-only TLS implementation");
+    print('Not implemented instantiation of server hello without serialization; this is a client-only TLS implementation');
   }
 };
 
@@ -621,23 +614,23 @@ TLSCertificate.prototype.__init__ = function (args) {
     /*#This handshake message has format: hs_cert(1), hs_msg_len(3),
     #certs_list_msg_len(3), [cert1_msg_len(3), cert1, cert_msg_len(3), cert2...]
     #so the first cert data starts at byte position 10 */
-    this.cert_len = ba2int(this.serialized.slice(7, 10));
+    this.cert_len = tlsn_utils.ba2int(this.serialized.slice(7, 10));
     this.asn1cert = this.serialized.slice(10, 10 + this.cert_len);
-    var listlen = ba2int(this.serialized.slice(4, 7))
+    var listlen = tlsn_utils.ba2int(this.serialized.slice(4, 7))
     assert(this.serialized.length === listlen + 7);
     var offset = 7;
     var certlen;
     var cert;
     var chain = [];
     while (offset < this.serialized.length - 1) {
-      certlen = ba2int(this.serialized.slice(offset, offset + 3));
+      certlen = tlsn_utils.ba2int(this.serialized.slice(offset, offset + 3));
       offset += 3;
       cert = this.serialized.slice(offset, offset + certlen);
       offset += certlen;
       chain.push(cert);
     }
     this.chain = chain;
-    this.typename = "TLSCertificate";
+    this.typename = 'TLSCertificate';
   } else {
     print('Not implemented instantiation of certificate without serialization; this is a client-only TLS implementation');
   }
@@ -652,7 +645,7 @@ TLSServerHelloDone.prototype.parent = TLSHandshake.prototype;
 function TLSServerHelloDone() {}
 TLSServerHelloDone.prototype.__init__ = function (args) {
   var serialized = args.serialized;
-  this.typename = "TLSServerHelloDone";
+  this.typename = 'TLSServerHelloDone';
   if (serialized) {
     //call parent method in the context of this instance
     TLSHandshake.prototype.__init__.call(this, serialized, h_shd);
@@ -670,16 +663,16 @@ function TLSClientKeyExchange() {}
 TLSClientKeyExchange.prototype.__init__ = function (args) {
   var serialized = null;
   var encryptedPMS = null;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.serialized) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.serialized) !== 'undefined') {
       serialized = args.serialized;
     }
-    if (typeof (args.encryptedPMS) !== "undefined") {
+    if (typeof (args.encryptedPMS) !== 'undefined') {
       encryptedPMS = args.encryptedPMS;
     }
 
   }
-  this.typename = "TLSClientKeyExchange";
+  this.typename = 'TLSClientKeyExchange';
   if (serialized) {
     print('Not implemented instantiation of client key exchange with serialization; this is a client-only TLS implementation');
   } else {
@@ -687,7 +680,7 @@ TLSClientKeyExchange.prototype.__init__ = function (args) {
       this.encryptedPMS = encryptedPMS;
     }
     //#Note that the encpms is preceded by its 2-byte length
-    this.serialized = [].concat(bi2ba(this.encryptedPMS.length, { 'fixed': 2 }), this.encryptedPMS);
+    this.serialized = [].concat(tlsn_utils.bi2ba(this.encryptedPMS.length, { 'fixed': 2 }), this.encryptedPMS);
     TLSHandshake.prototype.__init__.call(this, null, h_cke);
     TLSHandshake.prototype.serialize.call(this);
   }
@@ -697,8 +690,8 @@ TLSClientKeyExchange.prototype.__init__ = function (args) {
 function TLSChangeCipherSpec() {}
 TLSChangeCipherSpec.prototype.__init__ = function (args) {
   var serialized = null;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.serialized) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.serialized) !== 'undefined') {
       serialized = args.serialized;
     }
   }
@@ -710,7 +703,7 @@ TLSChangeCipherSpec.prototype.__init__ = function (args) {
   } else {
     this.serialized = [0x01];
   }
-  this.typename = "TLSChangeCipherSpec";
+  this.typename = 'TLSChangeCipherSpec';
 };
 
 
@@ -723,12 +716,12 @@ function TLSFinished() {}
 TLSFinished.prototype.__init__ = function (args) {
   var serialized = null;
   var verify_data = null;
-  this.typename = "TLSFinished";
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.serialized) !== "undefined") {
+  this.typename = 'TLSFinished';
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.serialized) !== 'undefined') {
       serialized = args.serialized;
     }
-    if (typeof (args.verify_data) !== "undefined") {
+    if (typeof (args.verify_data) !== 'undefined') {
       verify_data = args.verify_data;
     }
   }
@@ -754,8 +747,8 @@ TLSFinished.prototype.decrypt_verify_data = function (conn) {
 function TLSAppData() {}
 TLSAppData.prototype.__init__ = function (serialized, args) {
   var encrypted = false;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.encrypted) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.encrypted) !== 'undefined') {
       encrypted = args.encrypted;
     }
   }
@@ -768,7 +761,7 @@ TLSAppData.prototype.__init__ = function (serialized, args) {
     #the same as other record types, for consistency.*/
   this.serialized = serialized;
   this.discarded = '';
-  this.typename = "TLSAppData";
+  this.typename = 'TLSAppData';
 };
 TLSAppData.prototype.decrypt_app_data = function (conn) {
   this.serialized = conn.dtvm(this.serialized, appd);
@@ -782,9 +775,9 @@ TLSAlert.prototype.__init__ = function (args) {
   if (serialized) {
     this.serialized = serialized;
     this.discarded = '';
-    this.typename = "TLSAlert";
+    this.typename = 'TLSAlert';
   } else {
-    throw ("Alert creation not implemented");
+    throw ('Alert creation not implemented');
   }
 };
 
@@ -821,7 +814,7 @@ TLSConnectionState.prototype.__init__ = function (cipher_suite, expanded_keys, i
       break;
     }
   }
-  assert(version_found, "Unrecognised or invalid TLS version");
+  assert(version_found, 'Unrecognised or invalid TLS version');
   this.cipher_suite = cipher_suite;
   if (is_client) {
     this.end = 'client';
@@ -857,10 +850,10 @@ TLSConnectionState.prototype.__init__ = function (cipher_suite, expanded_keys, i
   this.seq_no = 0;
 };
 TLSConnectionState.prototype.build_record_mac = function (cleartext, record_type) {
-  var seq_no_bytes = bi2ba(this.seq_no, { 'fixed': 8 });
-  assert(this.mac_key, "Failed to build mac; mac key is missing");
-  var fragment_len = bi2ba(cleartext.length, { 'fixed': 2 });
-  var record_mac = hmac(this.mac_key, [].concat(seq_no_bytes, record_type, this.tlsver, fragment_len, cleartext), this.mac_algo);
+  var seq_no_bytes = tlsn_utils.bi2ba(this.seq_no, { 'fixed': 8 });
+  assert(this.mac_key, 'Failed to build mac; mac key is missing');
+  var fragment_len = tlsn_utils.bi2ba(cleartext.length, { 'fixed': 2 });
+  var record_mac = tlsn_utils.hmac(this.mac_key, [].concat(seq_no_bytes, record_type, this.tlsver, fragment_len, cleartext), this.mac_algo);
   return record_mac;
 };
 TLSConnectionState.prototype.mte = function (cleartext, rec_type) {
@@ -872,7 +865,7 @@ TLSConnectionState.prototype.mte = function (cleartext, rec_type) {
 };
 TLSConnectionState.prototype.dtvm = function (cleartext, rec_type, return_mac) {
   //'''Decrypt then verify mac'''
-  if (typeof (return_mac) === "undefined") {
+  if (typeof (return_mac) === 'undefined') {
     return_mac = false;
   }
   var retval;
@@ -886,8 +879,8 @@ TLSConnectionState.prototype.dtvm = function (cleartext, rec_type, return_mac) {
 };
 TLSConnectionState.prototype.verify_mac = function (cleartext, rec_type, args) {
   var return_mac = false;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.return_mac) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.return_mac) !== 'undefined') {
       return_mac = args.return_mac;
     }
   }
@@ -936,13 +929,13 @@ TLSConnectionState.prototype.aes_cbc_mpe = function (cleartext, rec_type) {
   } else if (this.tlsver.toString() === tls_ver_1_1.toString()) {
     //#the per-record IV is now sent as the start of the fragment
     ciphertext = [].concat(this.IV, ciphertext);
-    this.IV = getRandom(aes_block_size, window); //#use a new, random IV for each record
+    this.IV = tlsn_utils.getRandom(aes_block_size); //#use a new, random IV for each record
   }
   this.seq_no += 1;
   return ciphertext;
 };
 TLSConnectionState.prototype.aes_cbc_dum = function (ciphertext, rec_type, return_mac) {
-  if (typeof (return_mac) === "undefined") {
+  if (typeof (return_mac) === 'undefined') {
     return_mac = false;
   }
   //#decrypt
@@ -970,7 +963,7 @@ function tls_sender(sckt, msg, rec_type, tlsver, conn) {
   /*'''Wrap a message in a TLS Record before sending
   If conn argument provided, encrypt the payload
   before sending'''*/
-  if (typeof (conn) !== "undefined" && conn !== null) {
+  if (typeof (conn) !== 'undefined' && conn !== null) {
     msg = conn.mte(msg, rec_type);
   }
   var rec = new TLSRecord();
@@ -1098,7 +1091,7 @@ TLSNClientSession.prototype.get_server_hello = function () {
           var rv = tls_record_decoder(rspns);
           var records = rv[0];
           var remaining = rv[1];
-          assert(remaining.length === 0, "Server sent spurious non-TLS response");
+          assert(remaining.length === 0, 'Server sent spurious non-TLS response');
           if (records.length === 1) {
             if (records[0].content_type === alrt) {
               reject('Server sent alert ' + records[0].fragment.toString());
@@ -1135,7 +1128,7 @@ TLSNClientSession.prototype.process_server_hello = function (handshake_objects) 
   }
   assert(handshake_types.indexOf(h_sh) >= 0 && handshake_types.indexOf(h_cert) >= 0 &&
     handshake_types.indexOf(h_shd) >= 0,
-    "Server failed to send server hello, certificate, server hello done");
+    'Server failed to send server hello, certificate, server hello done');
   this.server_hello = handshake_objects[0];
   this.server_certificate = handshake_objects[1];
   this.server_hello_done = handshake_objects[2];
@@ -1157,7 +1150,7 @@ TLSNClientSession.prototype.process_server_hello = function (handshake_objects) 
       #TODO: error checking to make sure this is the case.*/
       this.tlsver = [0x03, 0x01];
     } else {
-      throw ("Failed to negotiate valid TLS version with server");
+      throw ('Failed to negotiate valid TLS version with server');
     }
   }
   //#for 'full' sessions, we can immediately precompute everything except
@@ -1179,19 +1172,19 @@ TLSNClientSession.prototype.get_verify_data_for_finished = function (args) {
   var half = 1;
   var provided_p_value = null;
   var is_for_client = true;
-  if (typeof (args.sha_verify) !== "undefined") {
+  if (typeof (args.sha_verify) !== 'undefined') {
     sha_verify = args.sha_verify;
   }
-  if (typeof (args.md5_verify) !== "undefined") {
+  if (typeof (args.md5_verify) !== 'undefined') {
     md5_verify = args.md5_verify;
   }
-  if (typeof (args.half) !== "undefined") {
+  if (typeof (args.half) !== 'undefined') {
     half = args.half;
   }
-  if (typeof (args.provided_p_value) !== "undefined") {
+  if (typeof (args.provided_p_value) !== 'undefined') {
     provided_p_value = args.provided_p_value;
   }
-  if (typeof (args.is_for_client) !== "undefined") {
+  if (typeof (args.is_for_client) !== 'undefined') {
     is_for_client = args.is_for_client;
   }
 
@@ -1208,9 +1201,9 @@ TLSNClientSession.prototype.get_verify_data_for_finished = function (args) {
     }
     var label;
     if (is_for_client) {
-      label = str2ba('client finished');
+      label = tlsn_utils.str2ba('client finished');
     } else {
-      label = str2ba('server finished');
+      label = tlsn_utils.str2ba('server finished');
     }
     var seed = [].concat(md5_verify, sha_verify);
     var ms = [].concat(this.master_secret_half_auditor, this.master_secret_half_auditee);
@@ -1224,13 +1217,13 @@ TLSNClientSession.prototype.get_verify_data_for_finished = function (args) {
     'half': half,
     'is_for_client': is_for_client
   });
-  return xor(provided_p_value.slice(0, 12), verify_hmac);
+  return tlsn_utils.xor(provided_p_value.slice(0, 12), verify_hmac);
 };
 
 TLSNClientSession.prototype.set_handshake_hashes = function (args) {
   var server = false;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.server) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.server) !== 'undefined') {
       server = args.server;
     }
   }
@@ -1283,7 +1276,7 @@ TLSNClientSession.prototype.get_server_finished = function () {
           var rv = tls_record_decoder(rspns);
           var x = rv[0];
           var remaining = rv[1];
-          assert(remaining.length === 0, "Server sent spurious non-TLS response");
+          assert(remaining.length === 0, 'Server sent spurious non-TLS response');
           records = [].concat(records, x);
           if (records.length < 2) {
             console.log('get_server_finished records.length < 2');
@@ -1325,7 +1318,7 @@ TLSNClientSession.prototype.process_server_finished = function (records) {
     }
   }
   this.server_finished = tls_record_fragment_decoder(hs, sf.fragment, { 'conn': this.server_connection_state, 'ignore_mac': true })[0];
-  assert(this.server_finished.handshake_type === h_fin, "Server failed to send Finished");
+  assert(this.server_finished.handshake_type === h_fin, 'Server failed to send Finished');
   //#store the IV immediately after decrypting Finished; this will be needed
   //#by auditor in order to replay the decryption
   this.IV_after_finished = this.server_connection_state.IV;
@@ -1339,7 +1332,7 @@ TLSNClientSession.prototype.process_server_finished = function (records) {
       }
       if (x.content_type !== appd) {
         //#this is too much; if it's an Alert or something, we give up.
-        throw ("Received unexpected TLS record before client request.");
+        throw ('Received unexpected TLS record before client request.');
       }
       //#store any app data records, in sequence, prior to processing all app data.
       this.server_response_app_data = [].concat(this.server_response_app_data, tls_record_fragment_decoder(appd, x.fragment));
@@ -1393,9 +1386,9 @@ TLSNClientSession.prototype.set_encrypted_pms = function () {
     'failed to set enc_pms, first half was: ' + this.enc_first_half_pms.toString() +
     ' second half was: ' + this.enc_second_half_pms.toString() + ' modulus was: ' +
     this.server_modulus.toString());
-  var bigint_pms1 = new BigInteger(ba2hex(this.enc_first_half_pms), 16);
-  var bigint_pms2 = new BigInteger(ba2hex(this.enc_second_half_pms), 16);
-  var bigint_mod = new BigInteger(ba2hex(this.server_modulus), 16);
+  var bigint_pms1 = new BigInteger(tlsn_utils.ba2hex(this.enc_first_half_pms), 16);
+  var bigint_pms2 = new BigInteger(tlsn_utils.ba2hex(this.enc_second_half_pms), 16);
+  var bigint_mod = new BigInteger(tlsn_utils.ba2hex(this.server_modulus), 16);
   var bigint_pms = bigint_pms1.multiply(bigint_pms2).mod(bigint_mod);
   var resulthex = bigint_pms.toString(16);
   this.enc_pms = hex2ba(resulthex);
@@ -1420,9 +1413,9 @@ TLSNClientSession.prototype.set_enc_first_half_pms = function () {
     tailzeroes.push(0);
   }
   var base = [].concat(0x02, ones, this.auditee_padding_secret, 0x00, this.pms1, tailzeroes, 0x01);
-  var bigint_base = new BigInteger(ba2hex(base), 16);
-  var bigint_mod = new BigInteger(ba2hex(this.server_modulus), 16);
-  var bigint_exp = new BigInteger(ba2hex(bi2ba(this.server_exponent)), 16);
+  var bigint_base = new BigInteger(tlsn_utils.ba2hex(base), 16);
+  var bigint_mod = new BigInteger(tlsn_utils.ba2hex(this.server_modulus), 16);
+  var bigint_exp = new BigInteger(tlsn_utils.ba2hex(tlsn_utils.bi2ba(this.server_exponent)), 16);
   var bigint_result = bigint_base.modPow(bigint_exp, bigint_mod);
   var resultba = hex2ba(bigint_result.toString(16));
   var padding_len = this.server_modulus.length - resultba.length;
@@ -1430,7 +1423,7 @@ TLSNClientSession.prototype.set_enc_first_half_pms = function () {
     resultba = [].concat(0x00, resultba);
   }
   this.enc_first_half_pms = resultba;
-  assert(this.enc_first_half_pms.length === this.server_modulus.length, "this.enc_first_half_pms.length === tlsn_session.server_mod_length");
+  assert(this.enc_first_half_pms.length === this.server_modulus.length, 'this.enc_first_half_pms.length === tlsn_session.server_mod_length');
 };
 
 TLSNClientSession.prototype.set_auditee_secret = function () {
@@ -1443,16 +1436,16 @@ TLSNClientSession.prototype.set_auditee_secret = function () {
   var tlsver_ch = this.initial_tlsver;
   var cr = this.client_random;
   var sr = this.server_random;
-  assert(cr && sr, "one of client or server random not set");
+  assert(cr && sr, 'one of client or server random not set');
   if (!this.auditee_secret) {
-    this.auditee_secret = getRandom(this.n_auditee_entropy, window);
+    this.auditee_secret = tlsn_utils.getRandom(this.n_auditee_entropy);
     //this.auditee_secret = [1,2,3,4,5,6,7,8,9,10,11,12];
   }
   if (!this.auditee_padding_secret) {
-    this.auditee_padding_secret = getRandom(15, window);
+    this.auditee_padding_secret = tlsn_utils.getRandom(15);
     //this.auditee_padding_secret = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
   }
-  var label = str2ba('master secret');
+  var label = tlsn_utils.str2ba('master secret');
   var seed = [].concat(cr, sr);
   var trailing_zeroes = [];
   for (var i = 0; i < (24 - 2 - this.n_auditee_entropy); ++i) {
@@ -1467,14 +1460,14 @@ TLSNClientSession.prototype.set_auditee_secret = function () {
 //-------------------NOT IN USE BY THE AUDITEE---------------
 TLSNClientSession.prototype.set_enc_second_half_pms = function () {
   assert(this.server_modulus);
-  var ones_length = 103 + ba2int(this.server_mod_length) - 256;
+  var ones_length = 103 + tlsn_utils.ba2int(this.server_mod_length) - 256;
   var trailing_zeroes = [];
   for (var i = 0; 24 - this.n_auditor_entropy - 1; ++i) {
     trailing_zeroes.push(0);
   }
   this.pms2 = [].concat(this.auditor_secret, trailing_zeroes, 0x01);
   ///XXX JS mod exp
-  this.enc_second_half_pms = pow(ba2int('\x01' + ('\x01' * (ones_length)) +
+  this.enc_second_half_pms = pow(tlsn_utils.ba2int('\x01' + ('\x01' * (ones_length)) +
       this.auditor_padding_secret + ('\x00' * 25) + this.pms2), this.server_exponent,
     this.server_modulus);
 };
@@ -1486,16 +1479,16 @@ TLSNClientSession.prototype.set_auditor_secret = function () {
   'secret' should be a bytearray of length n_auditor_entropy'''*/
   var cr = this.client_random;
   var sr = this.server_random;
-  assert(cr && sr, "one of client or server random not set");
+  assert(cr && sr, 'one of client or server random not set');
   if (!this.auditor_secret) {
-    this.auditor_secret = getRandom(this.n_auditor_entropy, window);
+    this.auditor_secret = tlsn_utils.getRandom(this.n_auditor_entropy);
     //this.auditor_secret = [1,2,3,4,5,6,7,8,9];
   }
   if (!this.auditor_padding_secret) {
-    this.auditor_padding_secret = getRandom(15, window);
+    this.auditor_padding_secret = tlsn_utils.getRandom(15);
     //this.auditor_padding_secret = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
   }
-  var label = str2ba('master secret');
+  var label = tlsn_utils.str2ba('master secret');
   var seed = [].concat(cr, sr);
   var trailing_zeroes = [];
   for (var i = 0; i < (24 - this.n_auditor_entropy - 1); ++i) {
@@ -1509,29 +1502,29 @@ TLSNClientSession.prototype.set_auditor_secret = function () {
 TLSNClientSession.prototype.set_master_secret_half = function (args) {
   var half = 1;
   var provided_p_value = null;
-  if (typeof (args) !== "undefined") {
-    if (typeof (args.half) !== "undefined") {
+  if (typeof (args) !== 'undefined') {
+    if (typeof (args.half) !== 'undefined') {
       half = args.half;
     }
-    if (typeof (args.provided_p_value) !== "undefined") {
+    if (typeof (args.provided_p_value) !== 'undefined') {
       provided_p_value = args.provided_p_value;
     }
   }
   //#non provision of p value means we use the existing p
   //#values to calculate the whole MS
   if (!provided_p_value) {
-    this.master_secret_half_auditor = xor(this.p_auditee.slice(0, 24), this.p_auditor.slice(0, 24));
-    this.master_secret_half_auditee = xor(this.p_auditee.slice(24), this.p_auditor.slice(24));
+    this.master_secret_half_auditor = tlsn_utils.xor(this.p_auditee.slice(0, 24), this.p_auditor.slice(0, 24));
+    this.master_secret_half_auditee = tlsn_utils.xor(this.p_auditee.slice(24), this.p_auditor.slice(24));
     return [].concat(this.master_secret_half_auditor, this.master_secret_half_auditee);
   }
-  assert([1, 2].indexOf(half) > -1, "Must provide half argument as 1 or 2");
+  assert([1, 2].indexOf(half) > -1, 'Must provide half argument as 1 or 2');
   //#otherwise the p value must be enough to provide one half of MS
-  assert(provided_p_value.length === 24, "Wrong length of P-hash value for half MS setting.");
+  assert(provided_p_value.length === 24, 'Wrong length of P-hash value for half MS setting.');
   if (half === 1) {
-    this.master_secret_half_auditor = xor(this.p_auditor.slice(0, 24), provided_p_value);
+    this.master_secret_half_auditor = tlsn_utils.xor(this.p_auditor.slice(0, 24), provided_p_value);
     return this.master_secret_half_auditor;
   } else {
-    this.master_secret_half_auditee = xor(this.p_auditee.slice(24), provided_p_value);
+    this.master_secret_half_auditee = tlsn_utils.xor(this.p_auditee.slice(24), provided_p_value);
     return this.master_secret_half_auditee;
   }
 };
@@ -1545,8 +1538,8 @@ TLSNClientSession.prototype.get_p_value_ms = function (ctrprty) {
    '''*/
   var garbage = args.garbage;
   assert(this.server_random && this.client_random && this.chosen_cipher_suite,
-    "server random, client random or cipher suite not set.");
-  var label = str2ba('key expansion');
+    'server random, client random or cipher suite not set.');
+  var label = tlsn_utils.str2ba('key expansion');
   var seed = [].concat(this.server_random, this.client_random);
   var chosen_cs = get_cs(this.chosen_cipher_suite);
   var expkeys_len = chosn_cs[chosen_cs.length - 1];
@@ -1577,7 +1570,8 @@ TLSNClientSession.prototype.get_p_value_ms = function (ctrprty) {
     for (i = 1; i < k + 1; ++i) {
       end += get_cs(this.chosen_cipher_suite)[i];
     }
-    var tmp2 = [].concat(tmp.slice(0, start), getRandom(end - start, window), tmp.slice(end));
+    // TODO verify below line!!!
+    var tmp2 = [].concat(tmp.slice(0, start), tlsn_utils.getRandom(end - start), tmp.slice(end));
     tmp = tmp2;
   }
   return tmp;
@@ -1595,8 +1589,8 @@ TLSNClientSession.prototype.do_key_expansion = function () {
   var cr = this.client_random;
   var sr = this.server_random;
   var cs = this.chosen_cipher_suite;
-  assert(cr && sr && cs, " need client and server random and cipher suite");
-  var label = str2ba('key expansion');
+  assert(cr && sr && cs, ' need client and server random and cipher suite');
+  var label = tlsn_utils.str2ba('key expansion');
   var seed = [].concat(sr, cr);
   //#for maximum flexibility, we will compute the sha1 or md5 hmac
   //#or the full keys, based on what secrets currently exist in this object
@@ -1616,7 +1610,7 @@ TLSNClientSession.prototype.do_key_expansion = function () {
       'full_secret': [].concat(this.master_secret_half_auditor, this.master_secret_half_auditee)
     })[2];
   } else if (this.p_master_secret_auditee && this.p_master_secret_auditor) {
-    key_expansion = xor(this.p_master_secret_auditee, this.p_master_secret_auditor);
+    key_expansion = tlsn_utils.xor(this.p_master_secret_auditee, this.p_master_secret_auditor);
   } else {
     throw ('Cannot expand keys, insufficient data');
   }
@@ -1667,9 +1661,9 @@ TLSNClientSession.prototype.get_verify_hmac = function (args) {
   //'''returns only 12 bytes of hmac'''
   var label;
   if (is_for_client) {
-    label = str2ba('client finished');
+    label = tlsn_utils.str2ba('client finished');
   } else {
-    label = str2ba('server finished');
+    label = tlsn_utils.str2ba('server finished');
   }
   var seed = [].concat(md5_verify, sha_verify);
   if (half == 1) {
@@ -1693,7 +1687,7 @@ TLSNClientSession.prototype.check_server_ccs_finished = function (provided_p_val
     'is_for_client': false
   });
   assert(this.server_finished.verify_data.toString() == verify_data_check.toString(),
-    "Server Finished record verify data is not valid.");
+    'Server Finished record verify data is not valid.');
   return true;
 };
 
@@ -1713,7 +1707,7 @@ TLSNClientSession.prototype.store_server_app_data_records = function (response) 
   var rv = tls_record_decoder(response);
   var recs = rv[0];
   var remaining = rv[1];
-  assert(remaining.length === 0, "Server sent spurious non-TLS data");
+  assert(remaining.length === 0, 'Server sent spurious non-TLS data');
   for (var i = 0; i < recs.length; i++) {
     var rec = recs[i];
     var decoded = tls_record_fragment_decoder(rec.content_type, rec.fragment);
@@ -1750,19 +1744,19 @@ TLSNClientSession.prototype.process_server_app_data_records = function () {
    '''*/
 
   assert(this.server_response_app_data.length > 0,
-    "Could not process the server response, no ciphertext found.");
+    'Could not process the server response, no ciphertext found.');
   var plaintexts = [];
   var bad_record_mac = 0;
 
   for (var i = 0; i < this.server_response_app_data.length; ++i) {
     var ciphertext = this.server_response_app_data[i];
     var rt;
-    if (ciphertext.typename === "TLSAppData") {
+    if (ciphertext.typename === 'TLSAppData') {
       rt = appd;
-    } else if (ciphertext.typename === "TLSAlert") {
+    } else if (ciphertext.typename === 'TLSAlert') {
       rt = alrt;
     } else {
-      throw ("Server response contained unexpected record type: ",
+      throw ('Server response contained unexpected record type: ',
         ciphertext.typename);
     }
     var validity, plaintext;
@@ -1803,7 +1797,7 @@ function cbc_unpad(pt) {
   var padding = pt.slice(pt.length - pad_len - 1, pt.length - 1);
   for (var i = 0; i < padding.length; i++) {
     if (padding[i] !== pad_len) {
-      throw ("Invalid CBC padding.");
+      throw ('Invalid CBC padding.');
     }
   }
   return pt.slice(0, pt.length - (pad_len + 1));
@@ -1811,22 +1805,22 @@ function cbc_unpad(pt) {
 
 
 function aes_encrypt(padded_cleartext, enc_key, IV) {
-  var ct = CryptoJS.enc.Hex.parse(ba2hex(padded_cleartext));
-  var key = CryptoJS.enc.Hex.parse(ba2hex(enc_key));
-  var iv = CryptoJS.enc.Hex.parse(ba2hex(IV));
+  var ct = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(padded_cleartext));
+  var key = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(enc_key));
+  var iv = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(IV));
   var enc_obj = CryptoJS.AES.encrypt(ct, key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.NoPadding });
-  return wa2ba(enc_obj.ciphertext.words);
+  return tlsn_utils.wa2ba(enc_obj.ciphertext.words);
 }
 
 
 //decrypt but leave the cbc padding intact
 function aes_decrypt(ciphertext, enc_key, IV) {
-  var ct = CryptoJS.enc.Hex.parse(ba2hex(ciphertext));
-  var key = CryptoJS.enc.Hex.parse(ba2hex(enc_key));
-  var iv = CryptoJS.enc.Hex.parse(ba2hex(IV));
+  var ct = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(ciphertext));
+  var key = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(enc_key));
+  var iv = CryptoJS.enc.Hex.parse(tlsn_utils.ba2hex(IV));
   var cipherParams = CryptoJS.lib.CipherParams.create({ ciphertext: ct });
   var decrypted = CryptoJS.AES.decrypt(cipherParams, key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.NoPadding });
-  return wa2ba(decrypted.words);
+  return tlsn_utils.wa2ba(decrypted.words);
 }
 
 
@@ -1835,14 +1829,14 @@ function rc4_crypt(data, key, state) {
   if (typeof (state) === 'undefined') {
     state = null;
   }
-  /*  """RC4 algorithm.
+  /*  '''RC4 algorithm.
     Symmetric, so performs encryption and decryption
     'state', if passed, is a tuple of three values,
     box (a bytearray), x and y (integers), allowing
     restart of the algorithm from an intermediate point.
     This is necessary since stream ciphers
     in TLS use the final state of the cipher at the end
-    of one record to initialise the next record (see RFC 2246)."""*/
+    of one record to initialise the next record (see RFC 2246).'''*/
   var x = 0,
     y = 0;
   var box = [];
@@ -1919,13 +1913,13 @@ function tls_10_prf(seed, args) {
   if (typeof (full_secret) === 'undefined') full_secret = null;
   //#sanity checks, (see choices of how to provide secrets under 'Notes' above)
   if (!first_half && !second_half && !full_secret) {
-    throw ("Error in TLSPRF: at least one half of the secret is required.");
+    throw ('Error in TLSPRF: at least one half of the secret is required.');
   }
   if ((full_secret && first_half) || (full_secret && second_half)) {
-    throw ("Error in TLSPRF: both full and half secrets should not be provided.");
+    throw ('Error in TLSPRF: both full and half secrets should not be provided.');
   }
   if (first_half && second_half) {
-    throw ("Error in TLSPRF: please provide the secret in the parameter full_secret.");
+    throw ('Error in TLSPRF: please provide the secret in the parameter full_secret.');
   }
   var P_MD5 = null;
   var P_SHA_1 = null;
@@ -1946,15 +1940,15 @@ function tls_10_prf(seed, args) {
   #Note that A[0] is actually A(1) in the RFC, since A(0) in the RFC is the seed.*/
   var A;
   if (first_half) {
-    A = [hmac(first_half, seed, 'md5')];
+    A = [tlsn_utils.hmac(first_half, seed, 'md5')];
     for (i = 1; i < Math.floor(req_bytes / md5_hash_len) + 1; i++) {
-      A.push(hmac(first_half, A[A.length - 1], 'md5'));
+      A.push(tlsn_utils.hmac(first_half, A[A.length - 1], 'md5'));
     }
 
     var md5_P_hash = [];
     for (i = 0; i < A.length; i++) {
       x = A[i];
-      md5_P_hash = [].concat(md5_P_hash, hmac(first_half, [].concat(x, seed), 'md5'));
+      md5_P_hash = [].concat(md5_P_hash, tlsn_utils.hmac(first_half, [].concat(x, seed), 'md5'));
     }
 
     P_MD5 = md5_P_hash.slice(0, req_bytes);
@@ -1965,22 +1959,22 @@ function tls_10_prf(seed, args) {
   #0 bytes of the final iteration, otherwise we will use 1-19 bytes of it.
   #Note that A[0] is actually A(1) in the RFC, since A(0) in the RFC is the seed.*/
   if (second_half) {
-    A = [hmac(second_half, seed, 'sha1')];
+    A = [tlsn_utils.hmac(second_half, seed, 'sha1')];
     for (i = 1; i < Math.floor(req_bytes / sha1_hash_len) + 1; i++) {
-      A.push(hmac(second_half, A[A.length - 1], 'sha1'));
+      A.push(tlsn_utils.hmac(second_half, A[A.length - 1], 'sha1'));
     }
 
     var sha1_P_hash = [];
     for (i = 0; i < A.length; i++) {
       x = A[i];
-      sha1_P_hash = [].concat(sha1_P_hash, hmac(second_half, [].concat(x, seed), 'sha1'));
+      sha1_P_hash = [].concat(sha1_P_hash, tlsn_utils.hmac(second_half, [].concat(x, seed), 'sha1'));
     }
 
     P_SHA_1 = sha1_P_hash.slice(0, req_bytes);
   }
 
   if (full_secret) {
-    PRF = xor(P_MD5, P_SHA_1);
+    PRF = tlsn_utils.xor(P_MD5, P_SHA_1);
   }
 
   return [P_MD5, P_SHA_1, PRF];

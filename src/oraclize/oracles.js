@@ -2,6 +2,8 @@ const assert = require('assert');
 const request = require('isomorphic-fetch');
 const xmlParse = require('xml2js');
 const R = require('ramda');
+const subtractList = require('../helpers.js').subtractList;
+const tlsn_utils = require('../tlsn/tlsn_utils.js');
 
 const kernelId = 'aki-503e7402';
 const snapshotIdV1Main = 'snap-cdd399f8';
@@ -120,7 +122,7 @@ function getModulusFromPubKey(pemPubKey) {
   for (var i = 1; i < (lines.length - 1); i++) {
     b64Str += lines[i];
   }
-  var der = b64decode(b64Str); // eslint-disable-line
+  var der = tlsn_utils.b64decode(b64Str);
   // last 5 bytes are 2 DER bytes and 3 bytes exponent, our  is the preceding 512 bytes
   var pubkey = der.slice(der.length - 517, der.length - 5);
   return pubkey;
@@ -225,7 +227,7 @@ function checkGetConsoleOutput(json, instanceId, launchTime, type) {
     // prevent funny business: last consoleLog entry no later than 4 minutes after instance starts
 
     var consoleOutputB64Encoded = json.output.toString();
-    var consoleOutputStr = ba2str(b64decode(consoleOutputB64Encoded)); // eslint-disable-line
+    var consoleOutputStr = tlsn_utils.ba2str(tlsn_utils.b64decode(consoleOutputB64Encoded));
     if ((type === 'main') || (type === 'sig')) {
       // no other string starting with xvd except for xvda
       assert(consoleOutputStr.search(/xvd[^a]/g) === -1);
@@ -332,8 +334,10 @@ const  getVerifiedServers = async (serversList) => {
 
 const avaibleServers = R.flatten(servers);
 const verifiedServers = getVerifiedServers(servers);
+const notVerifiableServers = subtractList(avaibleServers, verifiedServers);
 
 module.exports.getVerifiedServers = getVerifiedServers;
 module.exports.validateServer = validateServer;
 module.exports.avaibleServers = avaibleServers;
 module.exports.verifiedServers = verifiedServers;
+module.exports.notVerifiableServers = notVerifiableServers;

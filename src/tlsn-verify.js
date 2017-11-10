@@ -6,6 +6,8 @@ const sha256 = require('sha256');
 const BigInteger = require('big-integer');
 const tlsnVerifyChain = require('./tlsn/verifychain/verifychain.js');
 const tlsnClientFile = require('./tlsn/tlsn.js');
+const tlsn_utils = require('./tlsn/tlsn_utils.js');
+const Buffer = require('buffer').Buffer;
 
 const Certificate = tlsnVerifyChain.Certificate;
 const verifyCertChain = tlsnVerifyChain.verifyCertChain;
@@ -18,34 +20,34 @@ const decrypt_html = tlsnClientFile.decrypt_html;
 // Verify TLSNotary and check if is valid
 var exports = module.exports = {};
 
-exports.verify = (data, servers, verifiedServers) => {
-  data = ua2ba(data);
+exports.verify = (data, servers) => {
+  data = tlsn_utils.ua2ba(data);
   var offset = 0;
-  var header = ba2str(data.slice(offset, offset += 29));
+  var header = tlsn_utils.ba2str(data.slice(offset, offset += 29));
   if (header !== 'tlsnotary notarization file\n\n') {
     throw new Error('wrong header');
   }
   // Currently supports v1 and v2
-  var version = ba2int(data.slice(offset, offset += 2));
+  var version = tlsn_utils.ba2int(data.slice(offset, offset += 2));
 
   if (isNaN(version) || version === 0 || version > 2) {
     throw new Error('wrong version');
   }
 
-  var cs = ba2int(data.slice(offset, offset += 2));
+  var cs = tlsn_utils.ba2int(data.slice(offset, offset += 2));
   var cr = data.slice(offset, offset += 32);
   var sr = data.slice(offset, offset += 32);
   var pms1 = data.slice(offset, offset += 24);
   var pms2 = data.slice(offset, offset += 24);
-  var chain_serialized_len = ba2int(data.slice(offset, offset += 3));
+  var chain_serialized_len = tlsn_utils.ba2int(data.slice(offset, offset += 3));
   var chain_serialized = data.slice(offset, offset += chain_serialized_len);
   var tlsver = data.slice(offset, offset += 2);
   var tlsver_initial = data.slice(offset, offset += 2);
-  var response_len = ba2int(data.slice(offset, offset += 8));
+  var response_len = tlsn_utils.ba2int(data.slice(offset, offset += 8));
   var response = data.slice(offset, offset += response_len);
-  var IV_len = ba2int(data.slice(offset, offset += 2));
+  var IV_len = tlsn_utils.ba2int(data.slice(offset, offset += 2));
   var IV = data.slice(offset, offset += IV_len);
-  var sig_len = ba2int(data.slice(offset, offset += 2));
+  var sig_len = tlsn_utils.ba2int(data.slice(offset, offset += 2));
   var sig = data.slice(offset, offset += sig_len);
   var commit_hash = data.slice(offset, offset += 32);
   var notary_pubkey = data.slice(offset, offset += sig_len);
@@ -56,11 +58,13 @@ exports.verify = (data, servers, verifiedServers) => {
   }
   // start verification
   try {
-    assert(data.length === offset, 'invalid .pgsg length');
+    if (data.length !== offset) {
+      throw new Error('invalid .pgsg length');
+    }
     offset = 0;
     var chain = []; // For now we only use the 1st cert in the chain
     while (offset < chain_serialized.length) {
-      var len = ba2int(chain_serialized.slice(offset, offset += 3));
+      var len = tlsn_utils.ba2int(chain_serialized.slice(offset, offset += 3));
       var cert = chain_serialized.slice(offset, offset += len);
       chain.push(cert);
     }
@@ -101,13 +105,8 @@ exports.verify = (data, servers, verifiedServers) => {
     }
 
     if (!commitHashVerified) {
-      throw new Error('Matching notary server not found')
+      throw new Error('Matching notary server not found');
     }
-
-    //Disable console log, needless verbose output from TLSNClientSession
-    var saveConsole = console.log;
-
-    console.log = function () {};
 
     //decrypt html and check MAC
     var s = new TLSNClientSession();
@@ -131,24 +130,19 @@ exports.verify = (data, servers, verifiedServers) => {
     s.server_connection_state.IV = s.IV_after_finished;
     var html_with_headers = decrypt_html(s);
 
-    //re-enable console logging
-    console.log = saveConsole;
     return [html_with_headers, commonName, data, notary_pubkey];
   } catch (err) {
-    if (typeof saveConsole !== 'undefined')
-      console.log = saveConsole;
-
-    throw ('TLSNotary Verification Error: ' + err + ` ` + err.stack);
+    throw ('TLSNotary Verification Error: ' + err + ' ' + err.stack);
   }
-}
+};
 
 function verifyCommitHashSignature(commithash, signature, modulus) {
   //RSA verification is sig^e mod n, drop the padding and get the last 32 bytes
-  var bigint_signature = new BigInteger(ba2hex(signature), 16);
-  var bigint_mod = new BigInteger(ba2hex(modulus), 16);
-  var bigint_exp = new BigInteger(ba2hex(bi2ba(65537)), 16);
+  var bigint_signature = new BigInteger(tlsn_utils.ba2hex(signature), 16);
+  var bigint_mod = new BigInteger(tlsn_utils.ba2hex(modulus), 16);
+  var bigint_exp = new BigInteger(tlsn_utils.ba2hex(tlsn_utils.bi2ba(65537)), 16);
   var bigint_result = bigint_signature.modPow(bigint_exp, bigint_mod);
-  var padded_hash = hex2ba(bigint_result.toString(16));
+  var padded_hash = tlsn_utils.hex2ba(bigint_result.toString(16));
   var hash = padded_hash.slice(padded_hash.length - 32);
   if (commithash.toString() === new Buffer(hash).toString('hex')) {
     return true;
@@ -159,7 +153,7 @@ function verifyCommitHashSignature(commithash, signature, modulus) {
 function getModulus(cert) {
   var c = Certificate.decode(new Buffer(cert), 'der');
   var pk = c.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.data;
-  var pkba = ua2ba(pk);
+  var pkba = tlsn_utils.ua2ba(pk);
   // Expected modulus length 256, 384, 512
   var modlen = 256;
   if (pkba.length > 384) modlen = 384;
@@ -174,7 +168,7 @@ function getCommonName(cert) {
   for (var i = 0; i < fields.length; i++) {
     if (fields[i][0].type.toString() !== [2, 5, 4, 3].toString()) continue;
     //first 2 bytes are DER-like metadata
-    return ba2str(fields[i][0].value.slice(2));
+    return tlsn_utils.ba2str(fields[i][0].value.slice(2));
   }
   return 'unknown';
 }
@@ -191,8 +185,8 @@ function verifyCert(chain) {
 function permutator(inputArr) {
   var results = [];
 
-  function permute(arr, memo) {
-    var cur, memo = memo || [];
+  function permute(arr, _memo) {
+    var cur, memo = _memo || [];
 
     for (var i = 0; i < arr.length; i++) {
       cur = arr.splice(i, 1);

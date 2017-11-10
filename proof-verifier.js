@@ -1,6 +1,8 @@
-var utils = require('./src/load-utils.js');
+// var utils = require('./src/load-utils.js');
 const oracle = require('./src/oraclize/oracles.js');
 const servers = require('./src/oraclize/servers.js').servers;
+const tlsn_utils = require('./src/tlsn/tlsn_utils.js');
+
 var fs = require('fs');
 
 checkVersion();
@@ -191,7 +193,7 @@ function getProofType(proof) {
   ];
 
   for (var i = 0; i < proofSlice.length; i++) {
-    var proofHeader = (typeof proof === 'object') ? ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
+    var proofHeader = (typeof proof === 'object') ? tlsn_utils.ba2str(proof.slice(0, proofSlice[i].slice)) : proof.slice(0, proofSlice[i].slice);
     if (proofHeader === proofSlice[i].content) {
       return proofSlice[i].proofName;
     }
