@@ -405,7 +405,7 @@ function tls_record_fragment_decoder(t, d, args) {
       ignore_mac = args.ignore_mac;
     }
   }
-  hlpos = [];
+  let hlpos = [];
   if (conn) {
     if (ignore_mac) { //means we won't check it now, but store to be checked later
       rv = conn.dtvm(d, t, true);
@@ -424,6 +424,7 @@ function tls_record_fragment_decoder(t, d, args) {
     plaintext = d;
   }
   while (plaintext.length) {
+    let constructed_obj;
     if (t === hs) {
       var hs_types = [];
       var hs_types_keys = Object.keys(hs_type_map);

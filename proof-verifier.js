@@ -1,7 +1,7 @@
-// var utils = require('./src/load-utils.js');
-const oracle = require('./src/oraclize/oracles.js');
-const servers = require('./src/oraclize/servers.js').servers;
-const tlsn_utils = require('./src/tlsn/tlsn_utils.js');
+// var utils = require('./lib/load-utils.js');
+const oracle = require('./lib/oraclize/oracles.js');
+const servers = require('./lib/oraclize/servers.js').servers;
+const tlsn_utils = require('./lib/tlsn/tlsn_utils.js');
 
 var fs = require('fs');
 
@@ -54,7 +54,7 @@ async function verifyProof(data, file, verifiedServers, notVerifiableServers) {
   case 'tlsn':
     try {
       if (typeof tlsn === 'undefined') {
-        tlsn = require('./src/tlsn-verify.js');
+        tlsn = require('./lib/tlsn-verify.js');
       }
 
       console.log('Verifying TLSNotary proof...');
@@ -95,7 +95,7 @@ async function verifyProof(data, file, verifiedServers, notVerifiableServers) {
 
       if (isComputationProof(decryptedHtml)) {
         if (typeof computation === 'undefined') {
-          computation = require('./src/computation-verify.js');
+          computation = require('./lib/computation-verify.js');
         }
 
         console.log('Computation proof found...');
@@ -109,15 +109,13 @@ async function verifyProof(data, file, verifiedServers, notVerifiableServers) {
   case 'android':
     try {
       if (typeof android === 'undefined') {
-        android = require('./src/android-verify.js');
+        android = require('./lib/android-verify.js');
       }
 
       // Loading and parsing certificate chain of signing key
       console.log('Fetch AndroidProof.chain from ./certs');
-      var chain = android.getCertificateChain();
-      var params = android.getVerificationParameters();
 
-      if (await android.verify(data, chain, params)) {
+      if (await android.verify(data)) {
         console.log('The Android Proof contained in ' + parseFileName(file) + 'is valid');
       }
     } catch (err) {
@@ -128,7 +126,7 @@ async function verifyProof(data, file, verifiedServers, notVerifiableServers) {
   case 'ledger':
     try {
       if (typeof ledger === 'undefined') {
-        ledger = require('./src/ledger-verify.js');
+        ledger = require('./lib/ledger-verify.js');
       }
     
       const result = ledger.verify(data);
@@ -169,6 +167,8 @@ function isComputationProof(html) {
 
   const compCheck2 = 'Server: AmazonEC2';
   const validator2 = html.indexOf(compCheck2);
+  console.log(validator1);
+  console.log(validator2);
 
   return (validator1 === 0 && validator2 !== -1);
 }

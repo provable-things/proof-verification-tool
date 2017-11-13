@@ -4,6 +4,10 @@ import R from 'ramda';
 import {reduceDeleteValue} from './helpers.js';
 import {verifiedServers, notVerifiableServers} from './oraclize/oracles.js';
 import {verifyTLS} from './tlsn-verify.js';
+import {ba2str} from './tlsn/tlsn_utils.js';
+import {verifyAndroid} from './android-verify.js';
+import {verifyLedger} from './ledger-verify.js';
+import {isComputationProof, verifyComputationProof} from './computation-verify.js';
 
 type MainProof =
   | 'proofType_TLSNotary'
@@ -21,9 +25,11 @@ type ShiledProof =
   | 'proofType_NONE'
 
 type VerificationStatus =
-  | 'succes'
-  | 'faild'
+  | ['succes', '']
+  | ['faild', '']
   | TLSNStatus
+  | LedgerStatus
+  | ComputationStatus
 
 type TLSNStatus =
   | ['faild', 'wrong header']
@@ -33,6 +39,19 @@ type TLSNStatus =
   | ['faild', 'matching notary server not found']
   | ['succes', 'matching notary server not on-line']
   | ['succes', 'no exceptions']
+
+type LedgerStatus =
+  | ['succes', 'random valid']
+  | ['succes', 'random invalid']
+  | ['succes', 'nested valid']
+  | ['succes', 'not recognized nested poof']
+  | ['succes', 'subproof invalid'] // TODO
+
+type ComputationStatus =
+  | ['faild', 'unrecognized AMI provider']
+  | ['faild', 'instance ID mismatch']
+  | ['faild', 'signature invalid']
+  | ['faild', 'archive checksum failed']
 
 type ProofType = MainProof | ExtensionProof | ShiledProof 
 
@@ -93,29 +112,57 @@ export const getProofType = (proof: string): ProofType => {
   )(supportedProofs);
 };
 
-export const verifyProof = (proof: string, callback: any): ParsedProof => {
+const findExtensionProof = (message: ?string): ExtensionProof => {
+  let extensionType;
+  if (message !== null && message !== undefined && isComputationProof(message)) {
+    extensionType = 'computation';
+  }
+  else {
+    extensionType = 'proofType_NONE';
+  }
+  return extensionType;
+};
+
+export const verifyProof = async (proof: Uint8Array, callback: any): Promise<ParsedProof> => {
+  const proofType = getProofType(ba2str(proof));
+  let mainProof;
+  let message;
+  let extensionProof;
+  switch (proofType) {
+  case 'proofType_TLSNotary':{
+    const parsedMessage = await verifyTLS(proof, await verifiedServers, await notVerifiableServers);
+    mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    message = parsedMessage.parsedData;
+    break;
+  }
+  case 'proofType_Android':{
+    const parsedMessage = await verifyAndroid(proof);
+    mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    message = parsedMessage.parsedData;
+    break;
+  }
+  case 'proofType_Ledger':{
+    const parsedMessage = verifyLedger(proof);
+    mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    message = parsedMessage.parsedData;
+    break;
+  }
+  default: {
+    throw new Error();
+  }}
+  switch (findExtensionProof(message)) {
+  case 'computation': {
+    const parsedMessage = verifyComputationProof(message);
+    extensionProof = {proofType: 'computation', isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    break;
+  }}
   const parsedProof = {
-    mainProof: {proofType: 'proofType_TLSNotary', status: 'succes', isVerified: true},
-    extensionProof: null,
+    mainProof: mainProof,
+    extensionProof: extensionProof,
     proofShield: null,
-    message: 'ciao',
-    proofId: '1500',
+    message: message,
+    proofId: '1500',  // TODO not defined
   };
   callback && callback(parsedProof);
   return parsedProof;
 };
-
-const verifyTlsn = (
-  proof: string,
-  verifiedServers: Array<any>,
-  notVerifiableServers: Array<any>): {parsedProof: string, isVerified: boolean, status: VerificationStatus} => {
-
-  const verifiedTlsn = verifyTLS(proof, verifiedServers, notVerifiableServers);
-  const isVerified = verifiedTlsn.status[0] === 'succes' ? true : false; 
-  const status = verifiedTlsn.status;//['succes', 'matching notary server not on-line'];
-  const parsedProof = verifiedTlsn.parsedData;
-  return {isVerified, status, parsedProof};
-};
-// const verifyComputation = (proof: string, server) => {
-//   return 3;
-// }

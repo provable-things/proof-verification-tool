@@ -8,6 +8,7 @@
     "atob": "^2.0.3",
     "big-integer": "^1.6.17",
     "brfs": "^1.4.3",
+    "browserify-fs": "^1.0.0",
     "btoa": "^1.1.2",
     "buffer": "^5.0.8",
     "cbor": "^3.0.0",
@@ -51,6 +52,11 @@
   },
   "scripts": {
     "build": "./node_modules/.bin/babel ./src -d ./lib",
-    "test": "node -e \"require('./lib/test.js').runTest()\""
+    "test": "node -e \"require('./lib/test.js').runTest()\"",
+    "test-bundle": "node -e \"require('./bundleTestNode.js'); global.testAll()\"",
+    "flow": "./node_modules/.bin/flow",
+    "eslint": "./node_modules/.bin/eslint src/",
+    "browserify": "./node_modules/browserify/bin/cmd.js ./lib/index.js -r fs:browserify-fs -o bundle.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js -r fs:browserify-fs -o bundleTest.js",
+    "browserify-node": "./node_modules/browserify/bin/cmd.js ./lib/index.js --node -o bundleNode.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js --node -o bundleTestNode.js"
   }
 }

@@ -1,3 +1,4 @@
+// @flow
 // this verification uses portions from the pagesigner
 // whose code is slightly modified but mostly kept intact
 // for potential web re-use
@@ -7,6 +8,7 @@ const BigInteger = require('big-integer');
 const tlsnVerifyChain = require('./tlsn/verifychain/verifychain.js');
 const tlsnClientFile = require('./tlsn/tlsn.js');
 const tlsn_utils = require('./tlsn/tlsn_utils.js');
+// $FlowFixMe
 const Buffer = require('buffer').Buffer;
 
 const Certificate = tlsnVerifyChain.Certificate;
@@ -17,8 +19,7 @@ const decrypt_html = tlsnClientFile.decrypt_html;
 
 // loadDependencies();
 
-// OLD version do not work on that function but on verifyTLS
-const verify = (data, servers, notVerifiableServers) => {
+const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => {
   data = tlsn_utils.ua2ba(data);
   var offset = 0;
   var header = tlsn_utils.ba2str(data.slice(offset, offset += 29));
@@ -216,7 +217,7 @@ function getCommonName(cert) {
 // 
 //   return permute(inputArr);
 // }
-const verifyTLS = (data, verifiedServers, notVerifiableServers) => {
+const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableServers: Array<any>) => {
   let status;
   let parsedData;
   try {
@@ -252,7 +253,8 @@ const verifyTLS = (data, verifiedServers, notVerifiableServers) => {
       throw(err);
     }
   }
-  return {status, parsedData};
+  const isVerified = status[0] === 'succes' ? true : false; 
+  return {status, parsedData, isVerified};
 };
 module.exports.verify = verify;
 module.exports.verifyTLS = verifyTLS;

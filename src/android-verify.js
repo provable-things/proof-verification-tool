@@ -1,14 +1,18 @@
+// @flow
 var cbor = require('cbor');
 var URLSafeBase64 = require('urlsafe-base64');
 var r = require('jsrsasign');
 var request = require('isomorphic-fetch');
 var asn = require('asn1.js');
-const jsonSettings = require('./settings/settings.json');
+const jsonSettings = require('../settings/settings.json');
+// $FlowFixMe
+const Buffer = require('buffer').Buffer;
+const fs = require('fs');
 
-var exports = module.exports = {};
 
-exports.verify = async function(data, pemEncodedChain, rawSettings) {
-  var settings = JSON.parse(rawSettings.toString());
+export const verify = async (data: Uint8Array) => {
+  const pemEncodedChain = getCertificateChain();
+  const settings = jsonSettings;
   const googleApiKey = settings.googleApiKey;
   const apkDigest = settings.apkDigest;
   const apkCertDigest = settings.apkCertDigest;
@@ -24,8 +28,7 @@ exports.verify = async function(data, pemEncodedChain, rawSettings) {
   const jwsHeaderEncoded = URLSafeBase64.encode(androidProof.JWS_Header);
   const jwsPayloadEncoded = URLSafeBase64.encode(androidProof.JWS_Payload);
   const jwsSignatureEncoded = URLSafeBase64.encode(androidProof.JWS_Signature);
-  var jws =
-    jwsHeaderEncoded.concat('.').concat(jwsPayloadEncoded).concat('.').concat(jwsSignatureEncoded);
+  var jws = jwsHeaderEncoded.concat('.').concat(jwsPayloadEncoded).concat('.').concat(jwsSignatureEncoded);
   const googleCert = extractGoogleCert(jwsHeader);
 
   try {
@@ -61,16 +64,13 @@ exports.verify = async function(data, pemEncodedChain, rawSettings) {
 
     return true;
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.log(err.stack);
     return false;
   }
 };
 
-exports.getVerificationParameters = function () {
-  return jsonSettings;
-};
-
-exports.getCertificateChain = function () {
+export const getCertificateChain = () => {
   const encodedChain = new Buffer(fs.readFileSync('./certs/AndroidProof.chain'));
   const decodedChain = cbor.decodeFirstSync(encodedChain);
   var leaf = decodedChain.leaf;
@@ -127,8 +127,8 @@ function verifyPayload(jwsPayload, response, requestID, signature, apkDigest, ap
 async function verifyAuthenticity(jws, googleApiKey) {
   const postData = {signedAttestation: jws};
   const res = await request(
-      'https://www.googleapis.com/androidcheck/v1/attestations/verify?key=' + googleApiKey,
-      {method: 'POST', json: postData});
+    'https://www.googleapis.com/androidcheck/v1/attestations/verify?key=' + googleApiKey,
+    {method: 'POST', json: postData});
   const text = await res.text();
 
   var googleResponse = JSON.parse(text);
@@ -140,7 +140,7 @@ async function verifyAuthenticity(jws, googleApiKey) {
 function verifyResponseSignature(response, signature, pemLeafCert, whitelistedPubKeys) {
   var sig;
   var result = false;
-  if (pemLeafCert === null) {
+  if (pemLeafCert === null && whitelistedPubKeys !== null) {
     var i = 0;
     while (!result && i < whitelistedPubKeys.length) {
       sig = new r.crypto.Signature({alg: 'SHA256withECDSA'});
@@ -194,6 +194,7 @@ function verifyAttestationParams(leafCert) {
     this.seq().obj(
       this.key('verifiedBootKey').octstr(),
       this.key('deviceLocked').bool(),
+      // $FlowFixMe
       this.key('verifiedBootState').enum({0: 'Verified', 1: 'SelfSigned', 2: 'TrustedEnvironment', 3: 'Failed'})
     );
   });
@@ -234,8 +235,10 @@ function verifyAttestationParams(leafCert) {
   var KeyDescription = asn.define('KeyDescription', function () {
     this.seq().obj(
       this.key('attestationVersion').int(),
+      // $FlowFixMe
       this.key('attestationSecurityLevel').enum({0: 'Software', 1: 'TrustedEnvironment'}),
       this.key('keymasterVersion').int(),
+      // $FlowFixMe
       this.key('keymasterSecurityLevel').enum({0: 'Software', 1: 'TrustedEnvironment'}),
       this.key('attestationChallenge').octstr(),
       this.key('reserved').octstr(),
@@ -250,8 +253,8 @@ function verifyAttestationParams(leafCert) {
     throw new Error('verifyAttestationParams failed: keymasterVersion mismatch');
   }
   if (String(keyInfo.attestationSecurityLevel) !== 'TrustedEnvironment') {
+    // eslint-disable-next-line no-console
     console.log('Skipping attestationSecurityLevel verification');
-    // throw new Error('verifyAttestationParams failed: attestationSecurityLevel mismatch');
   }
   if (String(keyInfo.keymasterSecurityLevel) !== 'TrustedEnvironment') {
     throw new Error('verifyAttestationParams failed: keymasterSecurityLevel mismatch');
@@ -283,3 +286,19 @@ function extractGoogleCert(header) {
   cert.readCertPEM(googleCertChain[0]);
   return cert;
 }
+
+export const verifyAndroid = async (data: Uint8Array) => {
+  const cborEncodedData = data.slice(3);
+  const buf = new Buffer(cborEncodedData.buffer);
+  const androidProof = cbor.decodeFirstSync(buf);
+  const response = androidProof.HTTPResponse.toString();
+  try {
+    const isVerified = await verify(data);
+    const status = isVerified ? ['succes', ''] : ['faild', ''];
+    return {status, parsedData: response, isVerified};
+  }catch(e){
+    // eslint-disable-next-line no-console
+    console.log(e);
+    return {status: ['faild', ''], parsedData: response, isVerified: false};
+  }
+};
