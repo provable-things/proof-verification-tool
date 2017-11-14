@@ -57,6 +57,6 @@
     "flow": "./node_modules/.bin/flow",
     "eslint": "./node_modules/.bin/eslint src/",
     "browserify": "./node_modules/browserify/bin/cmd.js ./lib/index.js -r fs:browserify-fs -o bundle.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js -r fs:browserify-fs -o bundleTest.js",
-    "browserify-node": "./node_modules/browserify/bin/cmd.js ./lib/index.js --node -o bundleNode.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js --node -o bundleTestNode.js"
+    "browserify-node": "./node_modules/browserify/bin/cmd.js ./lib/index.js --node --s proofVerifier -o bundleNode.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js --node -o bundleTestNode.js"
   }
 }
