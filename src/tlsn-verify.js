@@ -56,99 +56,95 @@ const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => 
     var time = data.slice(offset, offset += 4);
   }
   // start verification
-  try {
-    if (data.length !== offset) {
-      throw new Error('invalid .pgsg length');
+  if (data.length !== offset) {
+    throw new Error('invalid .pgsg length');
+  }
+  offset = 0;
+  var chain = []; // For now we only use the 1st cert in the chain
+  while (offset < chain_serialized.length) {
+    var len = tlsn_utils.ba2int(chain_serialized.slice(offset, offset += 3));
+    var cert = chain_serialized.slice(offset, offset += len);
+    chain.push(cert);
+  }
+
+  var commonName = getCommonName(chain[0]);
+
+  // TODO what the below code do???
+  // verify cert
+  // not throwing but only logging if verbose mode is on
+  // due to self-signed certs that may fail here, which
+  // shouldn't invalidate the verification
+  // if (!verifyCert(chain)) {
+  //   //TODO console.log('certificate verification failed');
+  // }
+  var modulus = getModulus(chain[0]);
+
+  // Verify commit hash
+  if (sha256(response).toString() !== new Buffer(commit_hash).toString('hex')) {
+    throw new Error('commit hash mismatch');
+  }
+  var signed_data;
+  // Verify sig
+  if (version >= 2) {
+    signed_data = sha256([].concat(commit_hash, pms2, modulus, time));
+  } else {
+    signed_data = sha256([].concat(commit_hash, pms2, modulus));
+  }
+
+  var signingKey;
+  var commitHashVerified = false;
+  var isServerVerified = 'yes';
+
+  for (let i = 0; i < servers.length; i++) {
+    let server = servers[i];
+    signingKey = server.sig.modulus;
+    if (verifyCommitHashSignature(signed_data, sig, signingKey)) {
+      commitHashVerified = true;
+      break;
     }
-    offset = 0;
-    var chain = []; // For now we only use the 1st cert in the chain
-    while (offset < chain_serialized.length) {
-      var len = tlsn_utils.ba2int(chain_serialized.slice(offset, offset += 3));
-      var cert = chain_serialized.slice(offset, offset += len);
-      chain.push(cert);
-    }
-
-    var commonName = getCommonName(chain[0]);
-
-    // TODO what the below code do???
-    // verify cert
-    // not throwing but only logging if verbose mode is on
-    // due to self-signed certs that may fail here, which
-    // shouldn't invalidate the verification
-    // if (!verifyCert(chain)) {
-    //   //TODO console.log('certificate verification failed');
-    // }
-    var modulus = getModulus(chain[0]);
-
-    // Verify commit hash
-    if (sha256(response).toString() !== new Buffer(commit_hash).toString('hex')) {
-      throw new Error('commit hash mismatch');
-    }
-    var signed_data;
-    // Verify sig
-    if (version >= 2) {
-      signed_data = sha256([].concat(commit_hash, pms2, modulus, time));
-    } else {
-      signed_data = sha256([].concat(commit_hash, pms2, modulus));
-    }
-
-    var signingKey;
-    var commitHashVerified = false;
-    var isServerVerified = 'yes';
-
-    for (let i = 0; i < servers.length; i++) {
-      let server = servers[i];
+  }
+  if (! commitHashVerified) {
+    for (let i = 0; i < notVerifiableServers.length; i++) {
+      let server = notVerifiableServers[i];
+      if (server === undefined) {
+        continue;
+      }
       signingKey = server.sig.modulus;
       if (verifyCommitHashSignature(signed_data, sig, signingKey)) {
         commitHashVerified = true;
+        isServerVerified = 'no';
         break;
       }
     }
-    if (! commitHashVerified) {
-      for (let i = 0; i < notVerifiableServers.length; i++) {
-        let server = notVerifiableServers[i];
-        if (server === undefined) {
-          continue;
-        }
-        signingKey = server.sig.modulus;
-        if (verifyCommitHashSignature(signed_data, sig, signingKey)) {
-          commitHashVerified = true;
-          isServerVerified = 'no';
-          break;
-        }
-      }
-    }
-
-    if (!commitHashVerified) {
-      throw new Error('Matching notary server not found');
-    }
-
-    //decrypt html and check MAC
-    var s = new TLSNClientSession();
-    s.__init__();
-    s.unexpected_server_app_data_count = response.slice(0, 1);
-    s.chosen_cipher_suite = cs;
-    s.client_random = cr;
-    s.server_random = sr;
-    s.auditee_secret = pms1.slice(2, 2 + s.n_auditee_entropy);
-    s.initial_tlsver = tlsver_initial;
-    s.tlsver = tlsver;
-    s.server_modulus = modulus;
-    s.set_auditee_secret();
-    s.auditor_secret = pms2.slice(0, s.n_auditor_entropy);
-    s.set_auditor_secret();
-    s.set_master_secret_half(); //#without arguments sets the whole MS
-    s.do_key_expansion(); //#also resets encryption connection state
-    s.store_server_app_data_records(response.slice(1));
-    s.IV_after_finished = IV;
-    s.server_connection_state.seq_no += 1;
-    s.server_connection_state.IV = s.IV_after_finished;
-    var html_with_headers = decrypt_html(s);
-
-    return [html_with_headers, commonName, data, notary_pubkey, isServerVerified];
-  } catch (err) {
-    throw ('TLSNotary Verification Error: ' + err + ' ' + err.stack);
   }
+
+  if (!commitHashVerified) {
+    throw new Error('Matching notary server not found');
+  }
+
+  //decrypt html and check MAC
+  var s = new TLSNClientSession();
+  s.__init__();
+  s.unexpected_server_app_data_count = response.slice(0, 1);
+  s.chosen_cipher_suite = cs;
+  s.client_random = cr;
+  s.server_random = sr;
+  s.auditee_secret = pms1.slice(2, 2 + s.n_auditee_entropy);
+  s.initial_tlsver = tlsver_initial;
+  s.tlsver = tlsver;
+  s.server_modulus = modulus;
+  s.set_auditee_secret();
+  s.auditor_secret = pms2.slice(0, s.n_auditor_entropy);
+  s.set_auditor_secret();
+  s.set_master_secret_half(); //#without arguments sets the whole MS
+  s.do_key_expansion(); //#also resets encryption connection state
+  s.store_server_app_data_records(response.slice(1));
+  s.IV_after_finished = IV;
+  s.server_connection_state.seq_no += 1;
+  s.server_connection_state.IV = s.IV_after_finished;
+  var html_with_headers = decrypt_html(s);
+
+  return [html_with_headers, commonName, data, notary_pubkey, isServerVerified];
 };
 
 function verifyCommitHashSignature(commithash, signature, modulus) {

@@ -29,68 +29,64 @@ const awsTrustedAMIlist = ['ami-30176327', 'ami-3200c65d', 'ami-84f6f093', 'ami-
 
 //$FlowFixMe
 export const verifyComputation = (rawHtml) => {
-  try {
-    const bodyHtml = rawHtml.substr(rawHtml.indexOf('\r\n\r\n<?xml') + 4);
-    const awsXML = bodyHtml;
-    //$FlowFixMe
-    var awsOutputDirty = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]).split('\n');
-    var awsOutputClean = [];
-    for (var i = 0; i < awsOutputDirty.length; i++) {
-      if (awsOutputDirty[i].substr(0, 2) !== ' *') {
-        awsOutputClean.push(awsOutputDirty[i]);
-      }
+  const bodyHtml = rawHtml.substr(rawHtml.indexOf('\r\n\r\n<?xml') + 4);
+  const awsXML = bodyHtml;
+  //$FlowFixMe
+  var awsOutputDirty = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]).split('\n');
+  var awsOutputClean = [];
+  for (var i = 0; i < awsOutputDirty.length; i++) {
+    if (awsOutputDirty[i].substr(0, 2) !== ' *') {
+      awsOutputClean.push(awsOutputDirty[i]);
     }
-    var awsOutput = awsOutputClean.join('\n');
+  }
+  var awsOutput = awsOutputClean.join('\n');
 
-    //$FlowFixMe
-    var oraclizeDoc = awsOutput.match(/ORACLIZE_DOC:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
-    //$FlowFixMe
-    oraclizeDoc = oraclizeDoc.substr(4, oraclizeDoc.length - 4).split('\r\r\n').join('');
-    //$FlowFixMe
-    var oraclizeSig = awsOutput.match(/ORACLIZE_SIG:[\s\S]*$/g)[0].split('ORACLIZE_')[1];
-    oraclizeSig = oraclizeSig.substr(4, oraclizeSig.indexOf('[') - 4).split('\r\r\n').join('');
-    const decodedDoc = JSON.parse(atob(oraclizeDoc));
-    var awsSignature = atob(oraclizeSig).replace(/\n/g, '');
+  //$FlowFixMe
+  var oraclizeDoc = awsOutput.match(/ORACLIZE_DOC:[\s\S]*ORACLIZE_/g)[0].split('ORACLIZE_')[1];
+  //$FlowFixMe
+  oraclizeDoc = oraclizeDoc.substr(4, oraclizeDoc.length - 4).split('\r\r\n').join('');
+  //$FlowFixMe
+  var oraclizeSig = awsOutput.match(/ORACLIZE_SIG:[\s\S]*$/g)[0].split('ORACLIZE_')[1];
+  oraclizeSig = oraclizeSig.substr(4, oraclizeSig.indexOf('[') - 4).split('\r\r\n').join('');
+  const decodedDoc = JSON.parse(atob(oraclizeDoc));
+  var awsSignature = atob(oraclizeSig).replace(/\n/g, '');
 
-    // convert from base64 to hex
-    awsSignature = tlsn_utils.ba2hex(tlsn_utils.str2ba(atob(awsSignature)));
+  // convert from base64 to hex
+  awsSignature = tlsn_utils.ba2hex(tlsn_utils.str2ba(atob(awsSignature)));
 
-    // check for trusted AMI
-    const awsAMIvalid = (awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1) ? true : false;
+  // check for trusted AMI
+  const awsAMIvalid = (awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1) ? true : false;
 
-    if (!awsAMIvalid) {
-      throw new Error('unrecognized AMI provided');
-    }
-    // get instanceId from json doc & xml (from body html)
-    const awsInstanceIdDoc = decodedDoc.instanceId;
-    //$FlowFixMe
-    const awsInstanceIdXML = awsXML.match(/<instanceId>(.*?)<\/instanceId>/)[1];
+  if (!awsAMIvalid) {
+    throw new Error('unrecognized AMI provided');
+  }
+  // get instanceId from json doc & xml (from body html)
+  const awsInstanceIdDoc = decodedDoc.instanceId;
+  //$FlowFixMe
+  const awsInstanceIdXML = awsXML.match(/<instanceId>(.*?)<\/instanceId>/)[1];
 
-    // check if the instance id is the same
-    const awsInstanceMatch = awsInstanceIdDoc === awsInstanceIdXML;
+  // check if the instance id is the same
+  const awsInstanceMatch = awsInstanceIdDoc === awsInstanceIdXML;
 
-    if (!awsInstanceMatch) {
-      throw new Error('instance ID mismatch');
-    }
+  if (!awsInstanceMatch) {
+    throw new Error('instance ID mismatch');
+  }
 
-    // Ensure document signature passes verification
-    const verifier = new r.KJUR.crypto.Signature({alg: 'SHA256withRSA'});
-    verifier.init(awsPublicCertificateRSA);
-    verifier.updateString(atob(oraclizeDoc));
-    const awsSignatureValid = verifier.verify(awsSignature);
+  // Ensure document signature passes verification
+  const verifier = new r.KJUR.crypto.Signature({alg: 'SHA256withRSA'});
+  verifier.init(awsPublicCertificateRSA);
+  verifier.updateString(atob(oraclizeDoc));
+  const awsSignatureValid = verifier.verify(awsSignature);
 
-    if (!awsSignatureValid) {
-      throw new Error('signature invalid');
-    }
-    // archive checksum is completed on server-side
-    // with the publicly trusted AMI
-    const archiveChecksumPass = awsAMIvalid;
+  if (!awsSignatureValid) {
+    throw new Error('signature invalid');
+  }
+  // archive checksum is completed on server-side
+  // with the publicly trusted AMI
+  const archiveChecksumPass = awsAMIvalid;
 
-    if (!archiveChecksumPass) {
-      throw new Error('archive checksum failed');
-    }
-  } catch (err) {
-    throw new Error('Computation verification error ' + err);
+  if (!archiveChecksumPass) {
+    throw new Error('archive checksum failed');
   }
 };
 
