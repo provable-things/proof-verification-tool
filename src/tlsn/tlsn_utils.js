@@ -257,7 +257,6 @@ function gunzip_http(http_data){
     throw('Please set gzip_disabled = 1 in tlsnotary.ini and rerun the audit');
   }
   if (http_header.search(/content-encoding:\s.*gzip/i) === -1){
-    console.log('nothing to gunzip');
     return http_data; //#nothing to gunzip
   }
   var http_body = http_data.slice(http_header.length);

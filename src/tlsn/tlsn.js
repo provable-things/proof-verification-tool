@@ -89,10 +89,8 @@ function send_and_recv(command, data, expected_response) {
       }
       var b64data = req.getResponseHeader('Data');
       var data = b64decode(b64data);
-      console.log('got from oracle', response);
       resolve(data);
     };
-    console.log('sent to oracle', command);
     req.send();
   });
 }
@@ -106,7 +104,6 @@ function prepare_pms(modulus, tryno) {
   var rsapms2;
   var random_rs = reliable_sites[Math.random() * (reliable_sites.length) << 0];
   var rs_choice = random_rs.name;
-  console.log('random reliable site', rs_choice);
   var pms_session = new TLSNClientSession();
   pms_session.__init__({ 'server': rs_choice, 'port': random_rs.port, 'ccs': 53, 'tlsver': global_tlsver });
   pms_session.server_modulus = random_rs.modulus;
@@ -137,7 +134,6 @@ function prepare_pms(modulus, tryno) {
       var record_to_find = new TLSRecord();
       record_to_find.__init__(chcis, [0x01], pms_session.tlsver);
       if (response.toString().indexOf(record_to_find.serialized.toString()) < 0) {
-        console.log('PMS trial failed, retrying. (' + response.toString() + ')');
         throw ('PMS trial failed');
       }
       return ([pms_session.auditee_secret, pms_session.auditee_padding_secret, rsapms2]);
@@ -186,7 +182,6 @@ function negotiate_crippled_secrets(tlsn_session) {
 
 
 function decrypt_html(tlsn_session) {
-  console.log('will decrypt cs:', tlsn_session.server_connection_state.cipher_suite);
   var rv = tlsn_session.process_server_app_data_records();
   var plaintext = rv[0];
   var bad_mac = rv[1];
@@ -196,7 +191,6 @@ function decrypt_html(tlsn_session) {
   var plaintext_str = tlsn_utils.ba2str(plaintext);
   var plaintext_dechunked = tlsn_utils.dechunk_http(plaintext_str);
   var plaintext_gunzipped = tlsn_utils.gunzip_http(plaintext_dechunked);
-  console.log('returning plaintext of length ' + plaintext_gunzipped.length);
   return plaintext_gunzipped;
 }
 
@@ -239,7 +233,6 @@ function start_audit(modulus, certhash, name, port, headers, ee_secret, ee_pad_s
     })
     .then(function (handshake_objects) {
       tlsn_session.process_server_hello(handshake_objects);
-      console.log('negotiate_crippled_secrets');
       return negotiate_crippled_secrets(tlsn_session);
     })
     .then(function () {
@@ -250,7 +243,6 @@ function start_audit(modulus, certhash, name, port, headers, ee_secret, ee_pad_s
       }
       var headers_ba = tlsn_utils.str2ba(headers);
       tlsn_session.build_request(headers_ba);
-      console.log('sent request');
       return tlsn_session.sckt.recv(false); //#not handshake flag means we wait on timeout
     })
     .then(function (response) {
@@ -1085,10 +1077,8 @@ TLSNClientSession.prototype.get_server_hello = function () {
   var sckt = this.sckt;
   return new Promise(function (resolve, reject) {
     var loop = function (resolve, reject) {
-      console.log('get_server_hello next iteration');
       sckt.recv(true)
         .then(function (rspns) {
-          console.log('returned from sckt.recv with length', rspns.length);
           var rv = tls_record_decoder(rspns);
           var records = rv[0];
           var remaining = rv[1];
@@ -1104,7 +1094,6 @@ TLSNClientSession.prototype.get_server_hello = function () {
             handshake_objects = [].concat(handshake_objects, decoded);
           }
           if (handshake_objects.length < 3) {
-            console.log('get_server_hello handshake_objects.length < 3');
             loop(resolve, reject);
             return;
           }
@@ -1271,16 +1260,13 @@ TLSNClientSession.prototype.get_server_finished = function () {
   var sckt = this.sckt;
   return new Promise(function (resolve, reject) {
     var loop = function () {
-      console.log('get_server_finished next iteration');
       sckt.recv(true).then(function (rspns) {
-          console.log('returned from sckt.recv');
           var rv = tls_record_decoder(rspns);
           var x = rv[0];
           var remaining = rv[1];
           assert(remaining.length === 0, 'Server sent spurious non-TLS response');
           records = [].concat(records, x);
           if (records.length < 2) {
-            console.log('get_server_finished records.length < 2');
             loop();
             return;
           }

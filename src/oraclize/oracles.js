@@ -174,7 +174,6 @@ function checkDescribeInstances(jsonInput, instanceId, IP, type) {
     }
     return {ownerId: ownerId, volumeId: volumeId, volAttachTime: volAttachTime, launchTime: launchTime};
   } catch (err) {
-    console.log('checkDescribeInstances failed', err.stack); // eslint-disable-line
     throw new Error('checkDescribeInstances_failed');
   }
 }
@@ -215,7 +214,6 @@ function checkDescribeVolumes(json, instanceId, volumeId, volAttachTime, type) {
     // currentInstance guarantees that there was no time window to modify it
     assert(getSecondsDelta(attTime, volCreateTime) === 0);
   } catch (err) {
-    console.log('checkDescribeVolumes failed: ', err.stack); // eslint-disable-line
     throw new Error('checkDescribeVolumes_failed');
   }
 }
@@ -264,7 +262,6 @@ function checkGetConsoleOutput(json, instanceId, launchTime, type) {
 
     return pubKey;
   } catch (err) {
-    console.log('checkGetConsoleOutput failed: ', err.stack); // eslint-disable-line
     throw new Error('checkGetConsoleOutput_failed');
   }
 }
@@ -285,7 +282,6 @@ function checkDescribeInstanceAttribute(json, instanceId) {
     assert(json.instanceId.toString() === instanceId);
     assert(json.userData.toString() === '');
   } catch (err) {
-    console.log('checkDescribeInstanceAttribute failed', err.stack); // eslint-disable-line
     throw new Error('checkDescribeInstanceAttribute_failed');
   }
 }
@@ -295,7 +291,6 @@ function checkGetUser(json, ownerId) {
     assert(json[0].User[0].UserId.toString() === ownerId);
     assert(json[0].User[0].Arn.toString().slice(-(ownerId.length + ':root'.length)) === ownerId + ':root');
   } catch (err) {
-    console.log('checkGetUser failed', err.stack); // eslint-disable-line
     throw new Error('checkGetUser_failed');
   }
 }
@@ -317,14 +312,15 @@ const  getVerifiedServers = async (serversList) => {
         default:
           mainPubKey = await validateServer(server, '', mainPubKey);
         }
-        console.log('Valid server:' + server.name);
         verifiedServers.push(server);
       }
       catch (err) {
         if (err.name === 'aws_request_failed' && j === 1) {
-          console.log('Pagesigner notary server v1, verification status is unknown: the server might be offline or non-existent anymore');
+          break;
+        } else if (err.message === 'checkGetConsoleOutput_failed'){
+          break;
         } else {
-          console.log(server.name + ': skipping invalid server');
+          throw err;
         }
       }
     }

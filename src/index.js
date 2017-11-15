@@ -30,6 +30,7 @@ type VerificationStatus =
   | TLSNStatus
   | LedgerStatus
   | ComputationStatus
+  | AndroidStatus
 
 type TLSNStatus =
   | ['faild', 'wrong header']
@@ -39,6 +40,7 @@ type TLSNStatus =
   | ['faild', 'matching notary server not found']
   | ['succes', 'matching notary server not on-line']
   | ['succes', 'no exceptions']
+  | ['faild', 'Signature not in chert chain']
 
 type LedgerStatus =
   | ['succes', 'random valid']
@@ -46,6 +48,23 @@ type LedgerStatus =
   | ['succes', 'nested valid']
   | ['succes', 'not recognized nested poof']
   | ['succes', 'subproof invalid'] // TODO
+
+type AndroidStatus =
+  | ['faild', 'verifyPayload failed: apk hash or signing cert hash mismatch']
+  | ['faild', 'verifyAuthenticity failed']
+  | ['faild', 'verifyPayload failed: wrong apk hash']
+  | ['faild', 'verifyPayload failed: wrong signing certificate hash']
+  | ['faild', 'verifyResponseSignature failed']
+  | ['faild', 'verifyResponseSignature failed']
+  | ['faild', 'verifyAttestationParams failed: keymasterVersion mismatch']
+  | ['faild', 'verifyAttestationParams failed: keymasterSecurityLevel mismatch']
+  | ['faild', 'verifyAttestationParams failed: attestationChallenge value mismatch']
+  | ['faild', 'verifyAttestationParams failed: key purpose mismatch']
+  | ['faild', 'verifyAttestationParams failed: key algorithm is not EC based']
+  | ['faild', 'verifyAttestationParams failed: key digest mismatch']
+  | ['faild', 'verifyAttestationParams failed: ecCurve mismatch']
+  | ['faild', 'verifyAttestationParams failed: key was not generated on device']
+  | ['succes', 'verifyAttestationParams failed: attestationSecurityLevel']
 
 type ComputationStatus =
   | ['faild', 'unrecognized AMI provider']

@@ -12,7 +12,7 @@ const tlsn_utils = require('./tlsn/tlsn_utils.js');
 const Buffer = require('buffer').Buffer;
 
 const Certificate = tlsnVerifyChain.Certificate;
-// const verifyCertChain = tlsnVerifyChain.verifyCertChain;
+const verifyCertChain = tlsnVerifyChain.verifyCertChain;
 const TLSNClientSession = tlsnClientFile.TLSNClientSession;
 const decrypt_html = tlsnClientFile.decrypt_html;
 
@@ -69,14 +69,9 @@ const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => 
 
   var commonName = getCommonName(chain[0]);
 
-  // TODO what the below code do???
-  // verify cert
-  // not throwing but only logging if verbose mode is on
-  // due to self-signed certs that may fail here, which
-  // shouldn't invalidate the verification
-  // if (!verifyCert(chain)) {
-  //   //TODO console.log('certificate verification failed');
-  // }
+  if (!verifyCert(chain)) {
+    throw new Error('Signature not in chert chain');
+  }
   var modulus = getModulus(chain[0]);
 
   // Verify commit hash
@@ -183,36 +178,36 @@ function getCommonName(cert) {
   }
   return 'unknown';
 }
-// function verifyCert(chain) {
-//   var chainperms = permutator(chain);
-//   for (var i = 0; i < chainperms.length; i++) {
-//     if (verifyCertChain(chainperms[i])) {
-//       return true;
-//     }
-//   }
-//   return false;
-// }
+function verifyCert(chain) {
+  var chainperms = permutator(chain);
+  for (var i = 0; i < chainperms.length; i++) {
+    if (verifyCertChain(chainperms[i])) {
+      return true;
+    }
+  }
+  return false;
+}
 
-// function permutator(inputArr) {
-//   var results = [];
-// 
-//   function permute(arr, _memo) {
-//     var cur, memo = _memo || [];
-// 
-//     for (var i = 0; i < arr.length; i++) {
-//       cur = arr.splice(i, 1);
-//       if (arr.length === 0) {
-//         results.push(memo.concat(cur));
-//       }
-//       permute(arr.slice(), memo.concat(cur));
-//       arr.splice(i, 0, cur[0]);
-//     }
-// 
-//     return results;
-//   }
-// 
-//   return permute(inputArr);
-// }
+function permutator(inputArr) {
+  var results = [];
+
+  function permute(arr, _memo) {
+    var cur, memo = _memo || [];
+
+    for (var i = 0; i < arr.length; i++) {
+      cur = arr.splice(i, 1);
+      if (arr.length === 0) {
+        results.push(memo.concat(cur));
+      }
+      permute(arr.slice(), memo.concat(cur));
+      arr.splice(i, 0, cur[0]);
+    }
+
+    return results;
+  }
+
+  return permute(inputArr);
+}
 const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableServers: Array<any>) => {
   let status;
   let parsedData;
@@ -244,6 +239,9 @@ const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableS
       break;
     case 'Matching notary server not found':
       status = ['faild', 'matching notary server not found'];
+      break;
+    case 'Signature not in chert chain':
+      status = ['faild', 'Signature not in chert chain'];
       break;
     default:
       throw(err);
