@@ -9,7 +9,6 @@ const R = require('ramda');
 import {AndroidProof} from '../certs/AndroidProof.js';
 // $FlowFixMe
 const Buffer = require('buffer').Buffer;
-// const fs = require('fs');
 
 
 export const verify = async (data: Uint8Array) => {
@@ -76,7 +75,6 @@ export const verify = async (data: Uint8Array) => {
 };
 
 export const getCertificateChain = () => {
-  // const encodedChain = new Buffer(fs.readFileSync('./certs/AndroidProof.chain'));
   const encodedChain = new Buffer(AndroidProof);
   const decodedChain = cbor.decodeFirstSync(encodedChain);
   var leaf = decodedChain.leaf;
