@@ -1,8 +1,6 @@
 // @flow
 import R from 'ramda';
 // $FlowFixMe
-// import fs from 'fs';
-const fs = require('fs');
 
 const filterReduce = R.curry((wrongValue, a, b) => {
   if (a === wrongValue) {
@@ -24,27 +22,3 @@ export const reduceDeleteValue = R.curry( (valueToDelete, list) => {
 export const subtractList = R.curry( (biggerList, smallerList) => {
   return R.reject(R.contains(R.__, smallerList), biggerList);
 });
-
-export const readDirAsync = (path: string): any => {
-  return new Promise((resolve, reject) => {
-    fs.readdir(path, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};
-
-export const readFileAsync = (path: string): any => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-};

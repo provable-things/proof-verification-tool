@@ -41,12 +41,14 @@ const validateServer = async (server, type) => {
     }
     json = await getJSON(res);
     checkDescribeVolumes(json.DescribeVolumesResponse, notaryServer.instanceId, args.volumeId, args.volAttachTime, type);
-    res = await request(notaryServer.GU);
-    if (res.status !== 200) {
-      throw new Error('aws_await request_failed');
+    if (typeof window === 'undefined') { //TODO proxy server to be able to access ami.amzon from browser
+      res = await request(notaryServer.GU);
+      if (res.status !== 200) {
+        throw new Error('aws_await request_failed');
+      }
+      json = await getJSON(res);
+      checkGetUser(json.GetUserResponse.GetUserResult, args.ownerId);
     }
-    json = await getJSON(res);
-    checkGetUser(json.GetUserResponse.GetUserResult, args.ownerId);
 
     res = await request(notaryServer.GCO);
     if (res.status !== 200) {
@@ -78,7 +80,7 @@ const validateServer = async (server, type) => {
     assert(new Set(ids).size === 1); // eslint-disable-line
     return pubKey;
   } catch (err) {
-    throw new Error(err.message);
+    throw err;
   }
 };
 

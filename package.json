@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "Verifies Oraclize proofs locally",
   "main": "./lib/index.js",
-	"bin": {
-		"proof-verication-tool": "lib/cli.js"
-   },
+  "bin": {
+    "proof-verication-tool": "lib/cli.js"
+  },
   "dependencies": {
     "asn1.js": "^4.9.0",
     "atob": "^2.0.3",
@@ -59,11 +59,11 @@
   },
   "scripts": {
     "build": "./node_modules/.bin/babel ./src -d ./lib",
-    "test": "node -e \"require('./lib/test.js').runTest()\"",
-    "test-bundle": "node -e \"require('./bundleTestNode.js'); global.testAll()\"",
+    "test": "node ./lib/test.js",
+    "test-bundle": "node -e \"require('./bundleTestNode.js');\"",
     "flow": "./node_modules/.bin/flow",
     "eslint": "./node_modules/.bin/eslint src/",
     "browserify": "./node_modules/browserify/bin/cmd.js ./lib/index.js -r fs:browserify-fs -o bundle.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js -r fs:browserify-fs -o bundleTest.js",
     "browserify-node": "./node_modules/browserify/bin/cmd.js ./lib/index.js --node --s proofVerifier -o bundleNode.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js --node -o bundleTestNode.js"
-	}
+  }
 }
