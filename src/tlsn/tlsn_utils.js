@@ -1,6 +1,8 @@
 const getRandomValues = require('get-random-values');
 const atob = require('atob');
 const CryptoJS = require('crypto-js');
+import btoa from 'btoa';
+import pako from 'pako';
 //js native ArrayBuffer to Array of numbers
 function ab2ba(ab){
   var view = new DataView(ab);
@@ -54,20 +56,15 @@ function wa2ba(wordArray) {
 
 //CryptoJS doesnt accept bytearray input but it does accept a hexstring
 function ba2hex(bytearray){
-  try{
-    var hexstring = '';
-    for(var i=0; i<bytearray.length; i++){
-      var hexchar = bytearray[i].toString(16);
-      if (hexchar.length == 1){
-        hexchar = '0'+hexchar;
-      }
-      hexstring += hexchar;
+  var hexstring = '';
+  for(var i=0; i<bytearray.length; i++){
+    var hexchar = bytearray[i].toString(16);
+    if (hexchar.length == 1){
+      hexchar = '0'+hexchar;
     }
-    return hexstring;
+    hexstring += hexchar;
   }
-  catch(e){ 
-    var place_for_breakpoint = 0;
-  }
+  return hexstring;
 }
 
 
@@ -230,7 +227,7 @@ function dechunk_http(http_data){
   var dechunked = http_header;
   var cur_offset = 0;
   var chunk_len = -1; //#initialize with a non-zero value
-  while (true){  
+  while (true){  // eslint-disable-line no-constant-condition
     var new_offset = http_body.slice(cur_offset).search('\r\n');
     if (new_offset === -1){  //#pre-caution against endless looping
       //#pinterest.com is known to not send the last 0 chunk when HTTP gzip is disabled
