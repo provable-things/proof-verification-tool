@@ -1,4 +1,3 @@
-
 // @flow
 import R from 'ramda';
 // $FlowFixMe
@@ -50,3 +49,24 @@ export const readFileAsync = (path: string): any => {
   });
 };
 
+export const writeFileAsync = (path: string, data, binary): any => {
+  return new Promise((resolve, reject) => {
+    if( binary !== 'binary') {
+      fs.writeFile(path, data, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    }else {
+      fs.writeFile(path, data, 'binary', (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    }
+  });
+};

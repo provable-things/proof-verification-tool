@@ -13,7 +13,6 @@ function ab2ba(ab){
   return int_array;
 }
 
-
 function ba2ab(ba){
   var ab = new ArrayBuffer(ba.length);
   var dv = new DataView(ab);
@@ -22,8 +21,6 @@ function ba2ab(ba){
   }
   return ab;
 }
-
-
 
 function ba2ua(ba){
   var ua = new Uint8Array(ba.length);
@@ -66,7 +63,6 @@ function ba2hex(bytearray){
   }
   return hexstring;
 }
-
 
 //convert a hex string into byte array
 function hex2ba(str){
