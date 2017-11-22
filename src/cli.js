@@ -39,7 +39,9 @@ const parseProof = async (path) => {
   if (!verifiedProof.mainProof.isVerified) {
     throw new Error();
   }
+  console.log();
   console.log(chalk.green('Proof file: '), path);
+  console.log();
   console.log(chalk.yellow('Main proof: '),'\n ', verifiedProof.mainProof);
   console.log(chalk.yellow('Extension proof: '),'\n ', verifiedProof.extensionProof);
   console.log(chalk.yellow('Proof shield: '),'\n ', verifiedProof.proofShield);
@@ -49,7 +51,6 @@ const parseProof = async (path) => {
       : hex2ba(verifiedProof.message.value).toString()
     : 'please use save message flag');
   console.log(chalk.yellow('Proof ID: '),'\n ', verifiedProof.proofId);
-  console.log(path);
   if (R.contains(flags.saveMessage, process.argv)) {
     if(typeof verifiedProof.message === 'string') {
       await writeFileAsync(saveOutputPath(), verifiedProof.message);
@@ -60,9 +61,12 @@ const parseProof = async (path) => {
 };
 
 parseProof(process.argv[2]).then(() => {
-  console.log(chalk.red('finish'));
+  console.log();
+  console.log(chalk.green('SUCCESS'));
   process.exit(0);
 }).catch(e => {
   console.log(e);
+  console.log();
+  console.log(chalk.red('FAILURE'));
   process.exit(255);
 });

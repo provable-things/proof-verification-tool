@@ -8,6 +8,7 @@ import {ba2str} from './tlsn/tlsn_utils.js';
 import {verifyAndroid} from './android-verify.js';
 import {verifyLedger} from './ledger-verify.js';
 import {isComputationProof, verifyComputationProof} from './computation-verify.js';
+import crypto from 'crypto';
 
 type MainProof =
   | 'proofType_TLSNotary'
@@ -180,7 +181,7 @@ export const verifyProof = async (proof: Uint8Array, callback: any): Promise<Par
     extensionProof: extensionProof,
     proofShield: null,
     message: message,
-    proofId: '1500',  // TODO not defined
+    proofId: crypto.createHash('sha256').update(proof).digest().toString('hex'),  // TODO not defined
   };
   callback && callback(parsedProof);
   return parsedProof;
