@@ -1,5 +1,7 @@
 # proof-verification-tool
 
+**version 0.2.0**
+
 This tool can be used to verify the validity of an Oraclize proof. It can be embedded either as a module in a node app (for now not via NPM), in the browser in j2v8, or it can be used from the command line.
 
 The functions exposed are:
