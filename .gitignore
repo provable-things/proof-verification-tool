@@ -1,7 +1,8 @@
 .git
 node_modules
 browserified.js
-bundle.js
+bundle*.js
+lib
 
 # Logs
 logs

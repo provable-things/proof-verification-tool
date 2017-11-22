@@ -2,29 +2,33 @@
   "name": "oraclize-proof-verifier",
   "version": "0.1.0",
   "description": "Verifies Oraclize proofs locally",
-  "main": "proofVerifier.js",
+  "main": "./lib/index.js",
+  "bin": {
+    "proof-verication-tool": "lib/cli.js"
+  },
   "dependencies": {
     "asn1.js": "^4.9.0",
     "atob": "^2.0.3",
     "big-integer": "^1.6.17",
-    "brfs": "^1.4.3",
     "btoa": "^1.1.2",
     "cbor": "^3.0.0",
+    "chalk": "^2.3.0",
     "crypto-js": "^3.1.8",
+    "elegant-spinner": "^1.0.1",
+    "figlet": "^1.2.0",
     "get-random-values": "^1.2.0",
+    "isomorphic-fetch": "^2.2.1",
     "jsrsasign": "^6.2.1",
+    "log-update": "^2.3.0",
+    "ramda": "^0.25.0",
     "sha256": "^0.2.0",
     "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
     "vm": "^0.1.0",
-    "vm-browserify": "0.0.4",
     "xml2js": "^0.4.17"
   },
   "browser": {
-    "vm": false,
-    "atob": false,
-    "btoa": false,
-    "get-random-values": false
+    "vm": false
   },
   "browserify": {
     "transform": [
@@ -32,5 +36,28 @@
     ]
   },
   "author": "Oraclize",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.2",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-preset-flow": "^6.23.0",
+    "babelify": "^8.0.0",
+    "brfs": "^1.4.3",
+    "browserify": "^14.5.0",
+    "eslint": "^4.10.0",
+    "eslint-plugin-flowtype": "^2.39.1",
+    "flow-bin": "^0.58.0"
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/babel ./src -d ./lib",
+    "test": "node ./lib/test.js",
+    "test-bundle": "node -e \"require('./bundleTestNode.js');\"",
+    "flow": "./node_modules/.bin/flow",
+    "eslint": "./node_modules/.bin/eslint src/",
+    "browserify": "./node_modules/browserify/bin/cmd.js ./lib/index.js -r fs:browserify-fs -o bundle.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js -r fs:browserify-fs -o bundleTest.js",
+    "browserify-node": "./node_modules/browserify/bin/cmd.js ./lib/index.js --node --s proofVerifier -o bundleNode.js && ./node_modules/browserify/bin/cmd.js ./lib/test.js --node -o bundleTestNode.js"
+  }
 }

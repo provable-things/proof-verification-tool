@@ -1,36 +1,58 @@
 # proof-verification-tool
 
-## Install
+This tool can be used to verify the validity of an Oraclize proof. It can be embedded either as a module in a node app (for now not via NPM), in the browser in j2v8, or it can be used from the command line.
 
-    npm install
+The functions exposed are:
 
-## Browserify
+1. `getProofType(proof: string): ProofType`: that accepts an hexadecimal string (the proof) and returns a proof type. For now the proof types supported are: `proofType_TLSNotary`, `proofType_Android`, `proofType_Ledger`.
 
-    browserify browserifyMain.js -o bundle.js
+2. `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: that accepts a byte array (the proof), an optional callback and returns a promise containing the following object:
+```
+    {
+      mainProof: {
+        proofType: MainProof,
+        isVerified: boolean,
+        status: VerificationStatus
+      },
+      extensionProof: ?{
+        proofType: ExtensionProof, 
+        isVerified: boolean,
+        status: VerificationStatus
+      },
+      proofShield: ?{
+        proofType: ShiledProof, 
+        isVerified: boolean,
+        status: VerificationStatus },
+      message: string | {type: 'hex', value: string},
+      proofId: string,
+    }
+```
 
-Load bundle.js and then verify proofs using "verifyProof" function or check proof types using "getProofType".
+## Use from command line
 
-## Node
+First clone the repository, install the deps `yarn install` and build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.8.0
 
-### Requirements
+When you use the `proof-verification-tool` from the command line you can just check if the proof is valid or also extract the message contained in the proof:
 
-To use with Node.js, requires v4 or higher, not backwards compatible with v0.12 or earler. Tested working with the latest versions of 4, 5, 6 and 7.
+1. to check if a proof is valid do `node ./lib/cli [path to proof]` if the proof is valid the tool will print on the standard output the ParsedProof (above the format) and will exit with status code 0, if not will exit with status code different than 0.
 
-### How to use
+2. to extract the message contained in the proof you should do `node ./lib/cli [path to proof] -s [path to output file]` if the proof is valid the tool will print on the standard output the ParsedProof (the format is mentioned above), will save the proof in the specified path and it will exit with status code 0, if not it will exit with status code different than 0. When the message contained in the proof is a string the message will be written on the file as a UTF-8 string when is `{type: 'hex', value: string}`, the value will be written as binary data.
 
-Place proof files in the proof subdirectory 
+## Embed in a node app:
 
-Then run with
+First clone the repository, install the deps `yarn install` and build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.8.0
 
-    node proof-verifier
+Then you can just import the module in your app with:
+```
+import {verifyProof, getProofType} from 'path to proof verification tool directory' + '/lib/index.js\'
+```
 
-Any files in the proof folder will be checked and verified
+TODO: npm module
 
-### Extracting the Raw Proof Content
-Each proof contains a content, which can be different according to the proof type. For the Android, TLSNotary and Computation Proof, the raw proof content is a full HTTP Response.
+## Embed in a java app:
 
-In order to extract it, to verify the results contained or for debug purposed, the flag --saveContenshould be used, as in the following example:
+First clone the repository, install the deps `yarn install`, build the project `yarn build` and create the bundle with `yarn browserify-node`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.8.0
 
-	node proof-verifier --saveContent
+## Embed in a browser app:
 
-The raw proof content will then be saved in an 'output' folder, in a file named as the proof it is extracted from. If the 'output' folder doesn't exist, it will be automatically created. 
+Same as embed in a node app. If you use browserify when you build the bundle you should do `-r fs:browserify-fs`
