@@ -45,7 +45,7 @@ const parseProof = async (path) => {
   console.log(chalk.yellow('Main proof: '),'\n ', verifiedProof.mainProof);
   console.log(chalk.yellow('Extension proof: '),'\n ', verifiedProof.extensionProof);
   console.log(chalk.yellow('Proof shield: '),'\n ', verifiedProof.proofShield);
-  console.log(chalk.yellow('Message: '),'\n ', verifiedProof.message.length < process.stdout.columns * 7
+  console.log(chalk.yellow('Message: '),'\n ', verifiedProof.message.length < process.stdout.columns * 80
     ? typeof verifiedProof.message === 'string'
       ? verifiedProof.message
       : hex2ba(verifiedProof.message.value).toString()
