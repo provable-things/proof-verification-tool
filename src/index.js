@@ -157,7 +157,7 @@ export const verifyProof = async (proof: Uint8Array, callback: any): Promise<Par
   }
   case 'proofType_Android':{
     const parsedMessage = await verifyAndroid(proof);
-    mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    mainProof = {proofType, isVerified: true, status: ['success', '']};
     message = parsedMessage.parsedData;
     break;
   }
