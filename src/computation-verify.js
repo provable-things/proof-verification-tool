@@ -117,31 +117,31 @@ export const verifyComputationProof = (html: string) => {
   let status;
   try {
     verifyComputation(html);
-    status = ['succes', ''];
+    status = ['success', ''];
   }
   catch(e) {
     switch (e.message) {
     case 'unrecognized AMI provider': {
-      status = ['faild', 'unrecognized AMI provider'];
+      status = ['failed', 'unrecognized AMI provider'];
       break;
     }
     case 'instance ID mismatch': {
-      status = ['faild', 'instance ID mismatch'];
+      status = ['failed', 'instance ID mismatch'];
       break;
     }
     case 'signature invalid': {
-      status = ['faild', 'signature invalid'];
+      status = ['failed', 'signature invalid'];
       break;
     }
     case 'archive checksum failed': {
-      status = ['faild', 'archive checksum failed'];
+      status = ['failed', 'archive checksum failed'];
       break;
     }
     default: {
-      status = ['faild', ''];
+      status = ['failed', ''];
       break;
     }}
   }
-  const isVerified = status[0] === 'succes' ? true : false; 
+  const isVerified = status[0] === 'success' ? true : false; 
   return {status, isVerified};
 };

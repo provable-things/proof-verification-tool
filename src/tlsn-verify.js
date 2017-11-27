@@ -180,38 +180,38 @@ const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableS
     const isServerVerified = verifiedProof[4];
     parsedData = verifiedProof[0];
     if (isServerVerified === 'no') {
-      status = ['succes', 'matching notary server not on-line'];
+      status = ['success', 'matching notary server not on-line'];
     }
     else {
-      status = ['succes', 'no exceptions'];
+      status = ['success', 'no exceptions'];
     }
   }
   catch(err) {
     parsedData = '';
     switch(err.message) {
     case 'wrong header':
-      status = ['faild', 'wrong header'];
+      status = ['failed', 'wrong header'];
       break;
     case 'wrong version':
-      status = ['faild', 'wrong version'];
+      status = ['failed', 'wrong version'];
       break;
     case 'invalid .pgsg length':
-      status = ['faild', 'invalid .pgsg length'];
+      status = ['failed', 'invalid .pgsg length'];
       break;
     case 'commit hash mismatch':
-      status = ['faild', 'commit hash mismatch'];
+      status = ['failed', 'commit hash mismatch'];
       break;
     case 'Matching notary server not found':
-      status = ['faild', 'matching notary server not found'];
+      status = ['failed', 'matching notary server not found'];
       break;
     case 'Signature not in chert chain':
-      status = ['faild', 'Signature not in chert chain'];
+      status = ['failed', 'Signature not in chert chain'];
       break;
     default:
       throw(err);
     }
   }
-  const isVerified = status[0] === 'succes' ? true : false; 
+  const isVerified = status[0] === 'success' ? true : false; 
   return {status, parsedData, isVerified};
 };
 module.exports.verify = verify;

@@ -26,52 +26,52 @@ type ShiledProof =
   | 'proofType_NONE'
 
 type VerificationStatus =
-  | ['succes', '']
-  | ['faild', '']
+  | ['success', '']
+  | ['failed', '']
   | TLSNStatus
   | LedgerStatus
   | ComputationStatus
   | AndroidStatus
 
 type TLSNStatus =
-  | ['faild', 'wrong header']
-  | ['faild', 'wrong version']
-  | ['faild', 'invalid .pgsg length']
-  | ['faild', 'commit hash mismatch']
-  | ['faild', 'matching notary server not found']
-  | ['succes', 'matching notary server not on-line']
-  | ['succes', 'no exceptions']
-  | ['faild', 'Signature not in chert chain']
+  | ['failed', 'wrong header']
+  | ['failed', 'wrong version']
+  | ['failed', 'invalid .pgsg length']
+  | ['failed', 'commit hash mismatch']
+  | ['failed', 'matching notary server not found']
+  | ['success', 'matching notary server not on-line']
+  | ['success', 'no exceptions']
+  | ['failed', 'Signature not in chert chain']
 
 type LedgerStatus =
-  | ['succes', 'random valid']
-  | ['succes', 'random invalid']
-  | ['succes', 'nested valid']
-  | ['succes', 'not recognized nested poof']
-  | ['succes', 'subproof invalid'] // TODO
+  | ['success', 'random valid']
+  | ['success', 'random invalid']
+  | ['success', 'nested valid']
+  | ['success', 'not recognized nested poof']
+  | ['success', 'subproof invalid'] // TODO
 
 type AndroidStatus =
-  | ['faild', 'verifyPayload failed: apk hash or signing cert hash mismatch']
-  | ['faild', 'verifyAuthenticity failed']
-  | ['faild', 'verifyPayload failed: wrong apk hash']
-  | ['faild', 'verifyPayload failed: wrong signing certificate hash']
-  | ['faild', 'verifyResponseSignature failed']
-  | ['faild', 'verifyResponseSignature failed']
-  | ['faild', 'verifyAttestationParams failed: keymasterVersion mismatch']
-  | ['faild', 'verifyAttestationParams failed: keymasterSecurityLevel mismatch']
-  | ['faild', 'verifyAttestationParams failed: attestationChallenge value mismatch']
-  | ['faild', 'verifyAttestationParams failed: key purpose mismatch']
-  | ['faild', 'verifyAttestationParams failed: key algorithm is not EC based']
-  | ['faild', 'verifyAttestationParams failed: key digest mismatch']
-  | ['faild', 'verifyAttestationParams failed: ecCurve mismatch']
-  | ['faild', 'verifyAttestationParams failed: key was not generated on device']
-  | ['succes', 'verifyAttestationParams failed: attestationSecurityLevel']
+  | ['failed', 'verifyPayload failed: apk hash or signing cert hash mismatch']
+  | ['failed', 'verifyAuthenticity failed']
+  | ['failed', 'verifyPayload failed: wrong apk hash']
+  | ['failed', 'verifyPayload failed: wrong signing certificate hash']
+  | ['failed', 'verifyResponseSignature failed']
+  | ['failed', 'verifyResponseSignature failed']
+  | ['failed', 'verifyAttestationParams failed: keymasterVersion mismatch']
+  | ['failed', 'verifyAttestationParams failed: keymasterSecurityLevel mismatch']
+  | ['failed', 'verifyAttestationParams failed: attestationChallenge value mismatch']
+  | ['failed', 'verifyAttestationParams failed: key purpose mismatch']
+  | ['failed', 'verifyAttestationParams failed: key algorithm is not EC based']
+  | ['failed', 'verifyAttestationParams failed: key digest mismatch']
+  | ['failed', 'verifyAttestationParams failed: ecCurve mismatch']
+  | ['failed', 'verifyAttestationParams failed: key was not generated on device']
+  | ['success', 'verifyAttestationParams failed: attestationSecurityLevel']
 
 type ComputationStatus =
-  | ['faild', 'unrecognized AMI provider']
-  | ['faild', 'instance ID mismatch']
-  | ['faild', 'signature invalid']
-  | ['faild', 'archive checksum failed']
+  | ['failed', 'unrecognized AMI provider']
+  | ['failed', 'instance ID mismatch']
+  | ['failed', 'signature invalid']
+  | ['failed', 'archive checksum failed']
 
 type ProofType = MainProof | ExtensionProof | ShiledProof 
 

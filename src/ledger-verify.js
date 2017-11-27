@@ -81,19 +81,19 @@ export const verifyLedger = (data: Uint8Array) => {
     case 'random': {
       const result = verifyRandom(data);
       if (result) {
-        status = ['succes', 'random valid'];
+        status = ['success', 'random valid'];
       } else {
-        status = ['succes', 'random invalid'];
+        status = ['success', 'random invalid'];
       }
       break;
     }
     default:
-      status = ['succes', 'not recognized nested poof'];
+      status = ['success', 'not recognized nested poof'];
     }
   } else {
-    status = ['faild', ''];
+    status = ['failed', ''];
   }
-  const isVerified = status[0] === 'succes' ? true : false; 
+  const isVerified = status[0] === 'success' ? true : false; 
   const parsedData = '';
   return {isVerified, status, parsedData};
 };

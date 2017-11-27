@@ -71,7 +71,7 @@ export const verify = async (data: Uint8Array) => {
   verifySignature(jws, googleCert);
   await verifyAuthenticity(jws, googleApiKey);
 
-  return ['succes', status];
+  return ['success', status];
 };
 
 export const getCertificateChain = () => {
@@ -316,12 +316,12 @@ export const verifyAndroid = async (data: Uint8Array) => {
     status = await verify(data);
   }catch(err){
     if (R.contains(err.message, validErrors)) {
-      status = ['faild', err.message];
+      status = ['failed', err.message];
     }
     else {
       throw err;
     }
   }
-  const isVerified = status[0] === 'succes' ? true : false; 
+  const isVerified = status[0] === 'success' ? true : false; 
   return {status, parsedData: response, isVerified};
 };
