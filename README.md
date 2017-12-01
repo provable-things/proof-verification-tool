@@ -32,7 +32,7 @@ The functions exposed are:
 
 ## Use from command line
 
-First clone the repository, install the deps `yarn install` and build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.8.0
+First clone the repository, install the deps `yarn install` and build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn you should have at least node 6.0.0
 
 When you use the `proof-verification-tool` from the command line you can just check if the proof is valid or also extract the message contained in the proof:
 
