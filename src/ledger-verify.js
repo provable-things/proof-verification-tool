@@ -1,7 +1,7 @@
 // @flow
 const r = require('jsrsasign');
 // $FlowFixMe
-const Buffer = require('buffer').Buffer;
+const Buffer = require('safe-buffer').Buffer;
 
 /*  Proof Serialization 
  *
