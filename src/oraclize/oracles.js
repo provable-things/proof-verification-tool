@@ -10,8 +10,10 @@ const snapshotIdV1Main = 'snap-cdd399f8';
 const snapshotIdV1Sig = 'snap-00083b35';
 const imageIDV1Main = 'ami-5e39040c';
 const imageIDV1Sig = 'ami-88724fda';
-const snapshotIdV2 = 'snap-2c1fab9b';
-const imageIdV2 = 'ami-15192302';
+// const snapshotIdV2 = 'snap-2c1fab9b'; // necessary for [oraclize5, oraclize6, oraclize7]
+// const imageIdV2 = 'ami-15192302'; // necessary for [oraclize5, oraclize6, oraclize7]
+const snapshotIdV2 = 'snap-03bae56722ceec3f0';
+const imageIdV2 = 'ami-1f447c65';
 
 const servers = require('./servers.js').servers;
 
@@ -301,12 +303,15 @@ const  getVerifiedServers = async (serversList) => {
   var mainPubKey;
   var verifiedServers = [];
 
-  for (var j = 1; j < 3; j++) {
+  for (var j = 1; j < 3; j++) {// the array offset represents the TLSNotary version (we start with j = 1 for that reason)
     var servers = serversList[j];
     for (var i = 0; i < servers.length; i++) {
       var server = servers[i];
+      if (server.verifiable === false) {
+        continue;
+      }
       try {
-        switch (j) {
+        switch (j) { // the array offset represents the TLSNotary version
         case 1:
           mainPubKey = await validateServer(server, 'main', mainPubKey);
           await validateServer(server, 'sig', mainPubKey);

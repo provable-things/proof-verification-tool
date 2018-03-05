@@ -2,6 +2,7 @@ var exports = module.exports = {};
 
 const oraclize4 = {
   name: 'oraclize4',
+  verifiable: false, // unverifiable due to the instance not beeing online anymore (TLSN oracles v1 had some issues with long running deployments)
   main: {
     IP: '52.221.246.106',
     port: '10011',
@@ -25,8 +26,9 @@ const oraclize4 = {
   }
 };
 
-var oraclize5 = {
+const oraclize5 = {
   name: 'oraclize5',
+  verifiable: false, // unverifiable due to the instance not beeing online anymore (TLSN oracles had to be updated since the reliable_sites were not available anymore)
   main: {
     IP: '52.90.90.9',
     port: '10011',
@@ -42,8 +44,9 @@ var oraclize5 = {
   }
 };
 
-var oraclize6 = {
+const oraclize6 = {
   name: 'oraclize6',
+  verifiable: false, // unverifiable due to the instance not beeing online anymore (TLSN oracles had to be updated since the reliable_sites were not available anymore)
   main: {
     IP: '54.226.2.137',
     port: '10011',
@@ -59,8 +62,9 @@ var oraclize6 = {
   }
 };
 
-var oraclize7 = {
+const oraclize7 = {
   name: 'oraclize7',
+  verifiable: false, // unverifiable due to the instance not beeing online anymore (TLSN oracles had to be updated since the reliable_sites were not available anymore)
   main: {
     IP: '52.207.238.28',
     port: '10011',
@@ -76,8 +80,59 @@ var oraclize7 = {
   }
 };
 
+var oraclize8 = {
+  name: 'oraclize8',
+  verifiable: true,
+  main: {
+    'IP': '54.88.23.243',
+    'port': '10011',
+    'DI':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstances&Expires=2025-01-01&InstanceId=i-00911ae14cef82da2&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=DfWV%2BLDIwFRgER9dydptHgn%2B7ogLrl%2FSY%2BDLxSWCQc4%3D',
+    'DV':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeVolumes&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&VolumeId=vol-02103c9d1b0a3cdde&Signature=%2B5Feri349m0PFERP3J7rG0e9kMplK3OM1xGKw0SYscg%3D',
+    'GCO':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetConsoleOutput&Expires=2025-01-01&InstanceId=i-00911ae14cef82da2&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=63Ga9fqqLulCZ921DiS%2BEsbWjMs4%2FHcmGJRG9tX8XFo%3D',
+    'GU':'https://iam.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetUser&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2010-05-08&Signature=FZNVYWvQICZqzCNfQios%2Fz44FnTWXNKALe0kpeaqNbw%3D',
+    'DIA':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstanceAttribute&Attribute=userData&Expires=2025-01-01&InstanceId=i-00911ae14cef82da2&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=o%2B3fJaHchG7bkyabG%2BST6NkleatXwZgSPPUhUjLCttc%3D',
+    'instanceId': 'i-00911ae14cef82da2',
+  },
+  sig: {
+    'modulus': [221,147,104,49,118,191,52,49,194,13,161,115,162,3,15,181,30,156,6,201,186,230,190,49,221,72,3,193,139,131,50,140,242,205,102,252,85,77,95,225,98,248,84,171,253,151,100,196,65,166,153,76,253,41,107,252,85,18,94,85,35,226,139,58,76,253,202,250,54,193,25,65,60,197,22,108,234,17,193,77,197,170,66,58,110,109,196,41,133,0,162,35,250,190,36,35,127,47,200,127,145,37,178,226,109,59,160,175,16,88,213,213,218,25,83,20,194,87,46,191,95,186,26,255,174,117,49,218,51,89,222,0,192,84,151,128,14,12,29,88,211,169,17,87,120,111,69,150,190,233,192,166,29,197,212,143,38,178,33,97,94,94,234,80,24,77,143,244,255,57,219,9,240,126,10,230,121,130,5,131,119,215,12,155,34,197,158,250,205,8,250,129,145,8,92,102,142,84,88,157,90,182,220,169,148,131,233,52,167,52,118,59,237,130,52,180,62,149,85,80,191,107,197,173,157,152,81,141,116,107,46,16,76,235,53,126,138,39,205,109,103,18,17,99,239,125,228,253,85,207,29,143,39,131,179,167,94,33,120,109,191,74,106,56,76,27,137,21,230,113,219,7,170,109,186,24,109,213,74,3,169,23,253,239,92,218,189,241,24,255,248,220,23,101,52,24,217,130,61,216,180,130,149,73,139,49,183,64,36,231,24,102,131,251,253,95,182,66,155,107,249,9,239,202,40,77,216,250,36,103,173,91,94,44,146,233,190,246,4,40,121,205,215,221,146,35,65,77,240,47,82,64,89,87,134,13,50,203,198,17,244,143,17,148,119,50,63,105,123,195,72,16,128,98,95,77,207,138,115,158,78,167,224,254,78,201,20,234,180,63,162,227,82,92,243,22,140,145,145,192,13,148,187,144,141,98,128,205,23,186,165,218,76,160,110,97,121,157,249,184,202,124,22,145,240,84,2,229,80,59,50,199,118,42,250,213,204,82,60,123,41,124,40,50,218,211,205,121,67,113,98,19,147,42,179,177,91,40,156,130,90,116,202,114,44,47,42,140,76,206,104,54,126,31,137,47,72,205,174,125,238,43,250,89,238,42,37,145,194,203,103,209,28,219,227,69,215,246,138,83,17,163,192,85,20,160,168,111,36,244,208,55]}
+};
+
+var oraclize9 = {
+  name: 'oraclize9',
+  verifiable: true,
+  main: {
+    'IP': '54.173.53.241',
+    'port': '10011',
+    'DI':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstances&Expires=2025-01-01&InstanceId=i-0112bb534c5cd7884&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=z8%2FBd6MsEjd2iwq7%2FUVCodDsKj7z%2Bz4F4me2Pg%2FQ7Ac%3D',
+    'DV':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeVolumes&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&VolumeId=vol-04bc4902173068dee&Signature=A6sbh4TjHZWmOeHbfJw0qFz5BWvUrgydFMOco3w32Yc%3D',
+    'GCO':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetConsoleOutput&Expires=2025-01-01&InstanceId=i-0112bb534c5cd7884&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=cU5KMOKr4XVfXj2y1cThPiz21Zm9x%2FzZGquvBZHSFhE%3D',
+    'GU':'https://iam.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetUser&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2010-05-08&Signature=FZNVYWvQICZqzCNfQios%2Fz44FnTWXNKALe0kpeaqNbw%3D',
+    'DIA':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstanceAttribute&Attribute=userData&Expires=2025-01-01&InstanceId=i-0112bb534c5cd7884&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=OIfWcTg%2BCNUH%2F%2FwcWKJszGkL5m4fiM9pPBDMVqX%2F810%3D',
+    'instanceId': 'i-0112bb534c5cd7884',
+  },
+  sig: {
+    'modulus': [190,75,203,176,107,186,184,196,150,170,112,226,16,6,137,183,10,87,203,160,95,195,105,68,16,172,247,179,209,70,240,20,19,240,221,100,70,196,98,171,157,14,160,103,196,227,147,139,120,211,55,81,13,177,46,254,206,120,56,23,188,120,167,151,191,41,216,150,85,138,12,199,157,243,110,40,147,246,77,151,156,232,105,177,79,44,175,106,89,34,58,61,155,150,226,174,114,227,131,240,185,202,31,231,24,97,221,56,116,232,235,157,58,79,206,86,166,236,4,151,103,11,245,171,72,213,140,101,138,126,86,154,228,64,33,239,168,63,63,94,89,139,156,7,116,177,102,65,59,165,115,236,37,115,40,179,167,70,27,6,154,36,241,31,101,176,89,155,222,140,70,76,91,77,219,186,255,6,197,49,99,153,181,159,196,75,215,173,102,127,88,205,170,209,255,245,60,5,83,232,210,181,92,62,173,206,183,53,241,133,71,249,67,160,254,57,120,57,201,117,21,229,38,159,214,224,132,25,173,101,51,201,79,188,175,139,132,210,96,249,230,169,102,90,58,56,122,255,136,137,105,228,232,142,144,43,238,74,115,87,92,16,138,56,225,150,212,144,216,175,78,0,89,247,66,108,12,109,161,68,37,144,27,27,198,208,196,53,127,241,118,217,163,147,75,217,230,190,191,153,137,125,103,119,207,43,153,250,134,144,19,159,171,49,15,4,48,7,9,123,121,177,125,195,71,72,247,24,8,96,249,155,238,198,201,38,247,207,195,83,255,146,144,63,233,200,194,201,132,33,127,215,239,89,91,241,132,61,73,226,66,178,156,117,31,92,220,250,127,240,88,218,224,102,163,203,134,143,239,237,117,223,75,180,136,194,159,1,80,220,197,234,215,183,131,138,77,50,203,111,211,203,19,254,77,176,188,199,214,128,164,239,167,239,176,119,242,119,150,119,141,59,172,140,184,26,244,121,103,205,109,225,212,248,51,198,117,15,154,175,157,167,18,116,92,175,22,229,117,125,219,148,96,211,124,179,126,111,181,72,164,100,151,221,43,50,56,76,43,125,146,46,72,14,176,13,237,240,20,165,160,122,205,124,99,183,200,19,25,94,176,85,29,150,209,39,56,46,123,23,83,31,226,137,56,124,141,179,109,175,91,153]},
+};
+
+var oraclize10 = {
+  name: 'oraclize10',
+  verifiable: true,
+  main: {
+    'IP': '54.234.115.62',
+    'port': '10011',
+    'DI':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstances&Expires=2025-01-01&InstanceId=i-08f551b769042782e&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=ucfmNBcVlELt2a3MAofsrqpawB3wQSHhpdUEmhoXOc4%3D',
+    'DV':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeVolumes&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&VolumeId=vol-05f5ddbc973019eac&Signature=wLzD%2Bxhh6s0Gdrm5wlCNRD%2BuScQ%2FAhmOQGFuPZPbOSA%3D',
+    'GCO':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetConsoleOutput&Expires=2025-01-01&InstanceId=i-08f551b769042782e&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=82N%2BJrtGDd2iSobySHutPVn%2BTQur%2BEIsTYkMneHn60M%3D',
+    'GU':'https://iam.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=GetUser&Expires=2025-01-01&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2010-05-08&Signature=FZNVYWvQICZqzCNfQios%2Fz44FnTWXNKALe0kpeaqNbw%3D',
+    'DIA':'https://ec2.us-east-1.amazonaws.com/?AWSAccessKeyId=AKIAJSPYVAEPAJ5GGD2Q&Action=DescribeInstanceAttribute&Attribute=userData&Expires=2025-01-01&InstanceId=i-08f551b769042782e&SignatureMethod=HmacSHA256&SignatureVersion=2&Version=2014-10-01&Signature=Y1lyAVxJQ1Uf163rrMlKPjpq2VWDjvzqgAsSCCw0CmM%3D',
+    'instanceId': 'i-08f551b769042782e',
+  },
+  sig: {
+    'modulus': [203,7,24,105,90,200,70,241,125,159,52,118,42,153,205,85,91,65,253,253,17,240,164,155,104,243,239,119,191,231,244,27,237,77,61,210,33,205,69,198,184,193,204,144,24,38,159,97,131,88,69,128,53,196,143,46,208,5,227,78,180,204,187,116,159,224,145,148,170,150,157,14,141,66,170,31,72,73,236,221,211,76,207,203,134,186,36,222,230,151,132,113,33,252,204,223,78,205,237,246,23,145,150,236,36,90,208,157,46,178,170,138,3,244,43,68,13,146,181,172,128,235,186,142,43,195,137,181,97,253,74,131,33,41,238,249,173,190,28,8,10,238,52,100,170,133,152,115,61,20,174,206,97,245,50,45,114,209,211,246,243,250,8,188,186,171,6,45,183,166,41,134,17,121,182,116,76,36,162,60,68,228,198,184,72,159,68,212,43,239,102,156,114,43,31,251,122,175,103,41,62,165,152,67,216,99,70,143,231,103,198,2,94,252,135,130,96,131,24,98,250,19,152,95,186,176,201,141,126,163,30,174,183,60,77,158,90,236,81,97,107,240,162,77,238,150,184,131,151,247,218,121,232,192,182,55,147,202,71,179,9,72,85,209,124,178,68,72,86,236,157,125,96,84,13,151,172,140,116,31,169,230,252,61,196,92,255,103,56,75,101,121,204,59,242,228,116,131,253,204,165,209,70,178,93,76,177,94,195,147,126,98,83,16,246,187,148,35,16,4,130,109,254,91,196,198,32,19,70,63,61,173,107,139,238,174,98,23,182,211,127,122,36,124,16,200,207,186,237,165,205,223,207,218,213,203,141,132,62,101,103,173,140,63,3,165,88,84,208,21,150,2,101,55,158,216,217,60,84,181,127,88,75,95,105,135,249,193,119,231,162,108,110,164,154,84,169,180,169,25,11,46,226,72,20,59,59,204,22,155,13,27,229,146,165,239,182,171,235,104,72,245,31,80,96,13,210,201,79,36,196,147,239,31,93,88,232,200,136,70,113,189,138,117,199,150,175,8,72,140,33,230,21,0,29,173,230,184,78,78,179,218,112,72,220,124,189,205,235,176,130,29,223,229,54,86,32,80,197,224,171,133,229,84,17,57,64,46,208,109,29,69,68,174,153,96,39,147,11,234,158,185,59,115,21,87,167,77,253,65,169,111]},
+};
+
 // There can be potentially multiple oracles to choose from
 exports.servers = new Array(1);
 // 1st index denotes the tlsn proof version
 exports.servers.push([oraclize4]);
-exports.servers.push([oraclize5, oraclize6, oraclize7]);
+exports.servers.push([oraclize5, oraclize6, oraclize7, oraclize8, oraclize9, oraclize10]);
