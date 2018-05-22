@@ -34,9 +34,15 @@ const saveOutputPath = () => {
 
 const parseProof = async (path) => {
   const parsedProof = new Uint8Array(await readFileAsync(path));
-  const verifiedProof = await verifyProof(parsedProof);
-  if (!verifiedProof.mainProof.isVerified) {
-    throw new Error();
+
+  let verifiedProof;
+  try {
+    verifiedProof = await verifyProof(parsedProof);  
+    if (!verifiedProof.mainProof.isVerified) {
+      throw new Error();
+    }
+  } catch (error) {
+    throw new Error(error);
   }
   console.log();
   console.log(chalk.green('Proof file: '), path);
