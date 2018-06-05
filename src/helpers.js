@@ -49,6 +49,7 @@ export const readFileAsync = (path: string): any => {
   });
 };
 
+// $FlowFixMe
 export const writeFileAsync = (path: string, data, binary): any => {
   return new Promise((resolve, reject) => {
     if( binary !== 'binary') {

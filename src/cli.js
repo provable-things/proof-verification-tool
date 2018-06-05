@@ -2,7 +2,7 @@
 // @flow
 /* eslint-disable no-console */
 
-import {verifyProof} from './index.js';
+import {verifyProof, getMessageLen, getMessageContent} from './index.js';
 import {readFileAsync, writeFileAsync} from './helpers.js';
 import f from 'figlet';
 import chalk from 'chalk';
@@ -10,7 +10,6 @@ import process from 'process';
 import R from 'ramda';
 import elegantSpinner from 'elegant-spinner';
 import logUpdate from 'log-update';
-import {hex2ba} from './tlsn/tlsn_utils.js';
 // $FlowFixMe
 const Buffer = require('buffer').Buffer;
 
@@ -45,17 +44,16 @@ const parseProof = async (path) => {
   console.log(chalk.yellow('Main proof: '),'\n ', verifiedProof.mainProof);
   console.log(chalk.yellow('Extension proof: '),'\n ', verifiedProof.extensionProof);
   console.log(chalk.yellow('Proof shield: '),'\n ', verifiedProof.proofShield);
-  console.log(chalk.yellow('Message: '),'\n ', verifiedProof.message.length < process.stdout.columns * 80
-    ? typeof verifiedProof.message === 'string'
-      ? verifiedProof.message
-      : hex2ba(verifiedProof.message.value).toString()
+  console.log(chalk.yellow('Message: '),'\n ', getMessageLen(verifiedProof.message) < process.stdout.columns * 80
+    ? getMessageContent(verifiedProof.message)
     : 'please use save message flag');
+  
   console.log(chalk.yellow('Proof ID: '),'\n ', verifiedProof.proofId);
   if (R.contains(flags.saveMessage, process.argv)) {
     if(typeof verifiedProof.message === 'string') {
       await writeFileAsync(saveOutputPath(), verifiedProof.message);
     } else {
-      await writeFileAsync(saveOutputPath(), Buffer(hex2ba(verifiedProof.message.value)), 'binary');
+      await writeFileAsync(saveOutputPath(), Buffer(getMessageContent(verifiedProof.message, true)), 'binary');
     }
   }
 };

@@ -9,6 +9,7 @@ import {verifyAndroid} from './android-verify.js';
 import {verifyLedger} from './ledger-verify.js';
 import {isComputationProof, verifyComputationProof} from './computation-verify.js';
 import crypto from 'crypto';
+import {hex2ba} from './tlsn/tlsn_utils.js';
 
 type MainProof =
   | 'proofType_TLSNotary'
@@ -143,6 +144,16 @@ const findExtensionProof = (message: ?string): ExtensionProof => {
   return extensionType;
 };
 
+export const getMessageLen = (message: string | {type: 'hex', value: string}) =>
+  typeof message === 'string'
+    ? message.length
+    : hex2ba(message.value).toString().length;
+
+export const getMessageContent = (message: string | {type: 'hex', value: string}, bin: boolean = false) =>
+  typeof message === 'string'
+    ? message
+    : bin ? hex2ba(message.value) : hex2ba(message.value).toString();
+
 export const verifyProof = async (proof: Uint8Array, callback: any): Promise<ParsedProof> => {
   const proofType = getProofType(ba2str(proof));
   let mainProof;
@@ -181,6 +192,7 @@ export const verifyProof = async (proof: Uint8Array, callback: any): Promise<Par
     extensionProof: extensionProof,
     proofShield: null,
     message: message,
+    // $FlowFixMe
     proofId: crypto.createHash('sha256').update(proof).digest().toString('hex'),  // TODO not defined
   };
   callback && callback(parsedProof);
