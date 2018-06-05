@@ -1,3 +1,4 @@
+/* eslint-disable */
 const CryptoJS = require('crypto-js');
 const assert = require('assert');
 const tlsn_utils = require('./tlsn_utils');
