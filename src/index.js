@@ -14,6 +14,7 @@ import {hex2ba} from './tlsn/tlsn_utils.js';
 type MainProof =
   | 'proofType_TLSNotary'
   | 'proofType_Android'
+  | 'proofType_Android_v2'
   | 'proofType_Ledger'
   | 'proofType_Native' // TODO not implemented yet
   | 'proofType_NONE'
@@ -115,6 +116,11 @@ export const getProofType = (proof: string): ProofType => {
     },
     {
       slice: 3,
+      content: 'AP\x02',
+      proofName: 'proofType_Android_v2'
+    },
+    {
+      slice: 3,
       content: 'LP\x01',
       proofName: 'proofType_Ledger'
     }
@@ -167,7 +173,13 @@ export const verifyProof = async (proof: Uint8Array, callback: any): Promise<Par
     break;
   }
   case 'proofType_Android':{
-    const parsedMessage = await verifyAndroid(proof);
+    const parsedMessage = await verifyAndroid(proof, 'v1');
+    mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
+    message = parsedMessage.parsedData;
+    break;
+  }
+  case 'proofType_Android_v2':{
+    const parsedMessage = await verifyAndroid(proof, 'v2');
     mainProof = {proofType, isVerified: parsedMessage.isVerified, status: parsedMessage.status};
     message = parsedMessage.parsedData;
     break;

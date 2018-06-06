@@ -30,6 +30,8 @@ The functions exposed are:
     }
 ```
 
+Note: The proofType_Android has two versions. The user should provide the configuration parameters for v1 and v2 on the config file ./settings/settings.json. These parameters are provided by the Android device and along with the Google API key they are used to generate and validate the proof. The values provided here are just examples of how they are used.
+
 ## Use from command line
 
 First clone the repository, install the deps `yarn install` and build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.2.6
