@@ -2,7 +2,6 @@
 node_modules
 browserified.js
 bundle*.js
-lib
 
 # Logs
 logs

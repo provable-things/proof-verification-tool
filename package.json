@@ -20,6 +20,7 @@
     "isomorphic-fetch": "^2.2.1",
     "jsrsasign": "^6.2.1",
     "log-update": "^2.3.0",
+    "pako": "^1.0.6",
     "ramda": "^0.25.0",
     "safe-buffer": "^5.1.1",
     "sha256": "^0.2.0",
