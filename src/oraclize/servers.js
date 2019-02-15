@@ -82,7 +82,7 @@ const oraclize7 = {
 
 var oraclize8 = {
   name: 'oraclize8',
-  verifiable: true,
+  verifiable: false,
   main: {
     'IP': '54.88.23.243',
     'port': '10011',
@@ -99,7 +99,7 @@ var oraclize8 = {
 
 var oraclize9 = {
   name: 'oraclize9',
-  verifiable: true,
+  verifiable: false,
   main: {
     'IP': '54.173.53.241',
     'port': '10011',
@@ -116,7 +116,7 @@ var oraclize9 = {
 
 var oraclize10 = {
   name: 'oraclize10',
-  verifiable: true,
+  verifiable: false,
   main: {
     'IP': '54.234.115.62',
     'port': '10011',
