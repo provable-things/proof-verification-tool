@@ -20,98 +20,116 @@ export const verify = async (data: Uint8Array, version: string) => {
   let settings;
   let requestID;
   let encodedChain;
+  let pemEncodedChain
   if (version === 'v1') {
     settings = jsonSettings.v1;
     requestID = androidProof.requestID.toString();
-    encodedChain = new Buffer(jsonSettings.v1.androidCertChain, 'base64');
+    encodedChain = [new Buffer(jsonSettings.v1.androidCertChain[0], 'base64')]
+    pemEncodedChain = [getCertificateChain(encodedChain[0])]
   } else if (version === 'v2'){
     settings = jsonSettings.v2;
     requestID = androidProof.requestID.toString('hex');
-    encodedChain = new Buffer(jsonSettings.v2.androidCertChain, 'base64');
+    encodedChain = [new Buffer(jsonSettings.v2.androidCertChain[0], 'base64'), new Buffer(jsonSettings.v2.androidCertChain[1], 'base64')]
+    pemEncodedChain = [getCertificateChain(encodedChain[0]), getCertificateChain(encodedChain[1])]
   } else {
     throw new Error('version unsupported');
   }
-
-  const pemEncodedChain = getCertificateChain(encodedChain);
-  const googleApiKey = settings.googleApiKey;
-  const apkDigest = settings.apkDigest;
-  const apkCertDigest = settings.apkCertDigest;
-  const whitelistedPubKeys = settings.pubKeys;
-  const hashAlg = settings.alg;
-  const attestationParams = settings.attestationParams;
-  
-  const response = androidProof.HTTPResponse.toString();
-  const signature = androidProof.signature;
-  const jwsHeader = androidProof.JWS_Header;
-  const jwsPayload = androidProof.JWS_Payload;
-  const jwsHeaderEncoded = URLSafeBase64.encode(androidProof.JWS_Header);
-  const jwsPayloadEncoded = URLSafeBase64.encode(androidProof.JWS_Payload);
-  const jwsSignatureEncoded = URLSafeBase64.encode(androidProof.JWS_Signature);
-  var jws = jwsHeaderEncoded.concat('.').concat(jwsPayloadEncoded).concat('.').concat(jwsSignatureEncoded);
-  const googleCert = extractGoogleCert(jwsHeader);
-
-  if (pemEncodedChain === null) {
-    verifyResponseSignature(response, signature, null, whitelistedPubKeys, hashAlg);
-  } else {
-    var leafCert = new r.X509();
-    var intermediateCert = new r.X509();
-    var rootCert = new r.X509();
-    leafCert.readCertPEM(pemEncodedChain[0]);
-    intermediateCert.readCertPEM(pemEncodedChain[1]);
-    rootCert.readCertPEM(pemEncodedChain[2]);
-    try {
-      verifyAttestationParams(leafCert, attestationParams);
-    } catch(e) {
-      if (e.message ===  'verifyAttestationParams failed: attestationSecurityLevel') {
-        status = e.message;
-      } else {
-        throw e;
-      }
-    }
-    verifyAttestationCertChain(leafCert, intermediateCert, rootCert, pemEncodedChain[1], pemEncodedChain[2]);
-    verifyResponseSignature(response, signature, pemEncodedChain[0], null, hashAlg);
-  }
-
-  for (let j = 0; j < apkDigest.length; j++) {
-    for (let i = 0; i < apkCertDigest.length; i++) {
+  console.log("before for: ", pemEncodedChain)
+  for (let k = 0; k < encodedChain.length; k++) {
+    const googleApiKey = settings.googleApiKey;
+    const apkDigest = settings.apkDigest;
+    const apkCertDigest = settings.apkCertDigest;
+    const whitelistedPubKeys = settings.pubKeys;
+    const hashAlg = settings.alg;
+    const attestationParams = settings.attestationParams;
+    
+    const response = androidProof.HTTPResponse.toString();
+    const signature = androidProof.signature;
+    const jwsHeader = androidProof.JWS_Header;
+    const jwsPayload = androidProof.JWS_Payload;
+    const jwsHeaderEncoded = URLSafeBase64.encode(androidProof.JWS_Header);
+    const jwsPayloadEncoded = URLSafeBase64.encode(androidProof.JWS_Payload);
+    const jwsSignatureEncoded = URLSafeBase64.encode(androidProof.JWS_Signature);
+    var jws = jwsHeaderEncoded.concat('.').concat(jwsPayloadEncoded).concat('.').concat(jwsSignatureEncoded);
+    const googleCert = extractGoogleCert(jwsHeader);
+    console.log("k:", k)
+    let respVer
+    console.log("before if")
+    if (pemEncodedChain === null) {
+      verifyResponseSignature(response, signature, null, whitelistedPubKeys, hashAlg);
+    } else {
+      console.log("inside else")
+      var leafCert = new r.X509();
+      var intermediateCert = new r.X509();
+      var rootCert = new r.X509();
+      leafCert.readCertPEM(pemEncodedChain[k][0]);
+      intermediateCert.readCertPEM(pemEncodedChain[k][1]);
+      rootCert.readCertPEM(pemEncodedChain[k][2]);
       try {
-        verifyPayload(jwsPayload, response, requestID, signature, apkDigest[j], apkCertDigest[i], version);
-      } catch (err) {
-        if (err.message !== 'verifyPayload failed: wrong signing certificate hash' &&
-          err.message !== 'verifyPayload failed: wrong apk hash') {
-          throw new Error('verifyPayload failed: apk hash or signing cert hash mismatch');
+        console.log("before verify")
+        verifyAttestationParams(leafCert, attestationParams);
+      } catch(e) {
+        if (e.message ===  'verifyAttestationParams failed: attestationSecurityLevel') {
+          status = e.message;
+        } else {
+          throw e;
         }
       }
+      console.log("pem[k][0]", pemEncodedChain[k][0])
+      console.log("before important functions")
+      verifyAttestationCertChain(leafCert, intermediateCert, rootCert, pemEncodedChain[k][1], pemEncodedChain[k][2]);
+      respVer = verifyResponseSignature(response, signature, pemEncodedChain[k][0], null, hashAlg);
+      console.log("respVer:", respVer)
+      console.log("after important functions")
+    }
+
+    if(!respVer){
+      console.log("continue")
+      continue
+    } else {
+      for (let j = 0; j < apkDigest.length; j++) {
+        for (let i = 0; i < apkCertDigest.length; i++) {
+          try {
+            console.log("verify payload")
+            verifyPayload(jwsPayload, response, requestID, signature, apkDigest[j], apkCertDigest[i], version);
+          } catch (err) {
+            if (err.message !== 'verifyPayload failed: wrong signing certificate hash' &&
+              err.message !== 'verifyPayload failed: wrong apk hash') {
+              throw new Error('verifyPayload failed: apk hash or signing cert hash mismatch');
+            }
+          }
+        }
+      }
+
+      if (!verifySignature(jws, googleCert)) {
+        throw new Error('verifySignature failed');
+      }
+
+      for (let i = 0; i < googleApiKey.length; i++) {
+        try {
+          let result;
+          if (version === 'v1') {
+            result = await verifyAuthenticity(jws, googleApiKey[i]);
+          } else if (version === 'v2') {
+            result = await verifyAuthenticityV2(jws, googleApiKey[i]);
+          } else {
+            throw new Error('version unsupported');
+          }
+          
+          if (result) {
+            status = '';
+            break;
+          }
+        } catch (err) {
+          if (i == googleApiKey.length - 1) {
+            throw new Error('verifyAuthenticity failed');
+          }
+        }
+      }
+      console.log("before return")
+        return ['success', status];
     }
   }
-
-  if (!verifySignature(jws, googleCert)) {
-    throw new Error('verifySignature failed');
-  }
-
-  for (let i = 0; i < googleApiKey.length; i++) {
-    try {
-      let result;
-      if (version === 'v1') {
-        result = await verifyAuthenticity(jws, googleApiKey[i]);
-      } else if (version === 'v2') {
-        result = await verifyAuthenticityV2(jws, googleApiKey[i]);
-      } else {
-        throw new Error('version unsupported');
-      }
-      
-      if (result) {
-        status = '';
-        break;
-      }
-    } catch (err) {
-      if (i == googleApiKey.length - 1) {
-        throw new Error('verifyAuthenticity failed');
-      }
-    }
-  }
-
-  return ['success', status];
 };
 
 export const getCertificateChain = (encodedChain) => {
@@ -218,14 +236,19 @@ function verifyResponseSignature(response, signature, pemLeafCert, whitelistedPu
       i += 1;
     }
   } else {
+    console.log("verifyResponse SIG in else ")
     sig = new r.crypto.Signature({alg: hashAlg});
     sig.init(pemLeafCert);
     sig.updateString(response);
     result = sig.verify(signature.toString('hex'));
+    console.log("AFTER SET RESULT:",  result)
+    return result
   }
 
   if (!result) {
-    throw new Error('verifyResponseSignature failed');
+    console.log("if result not there")
+    //throw new Error('verifyResponseSignature failed');
+    return false
   }
 }
 
