@@ -167,7 +167,7 @@ function fixcerts() {
 
 
 function getPubkey(cert) {
-  var c = Certificate.decode(new Buffer(cert), 'der');
+  var c = Certificate.decode(Buffer.from(cert), 'der');
   return c.tbsCertificate.subjectPublicKeyInfo.subjectPublicKey.data;
 }
 
@@ -178,7 +178,7 @@ function getSubjectString(cert, whose, extended) {
   if (typeof (extended) === 'undefined') {
     extended = false;
   }
-  var c = Certificate.decode(new Buffer(cert), 'der');
+  var c = Certificate.decode(Buffer.from(cert), 'der');
   var fields;
   if (whose === 'issuer') {
     fields = c.tbsCertificate.issuer.value;
@@ -264,12 +264,12 @@ var verifyCertChain = function (chain) {
     var npem = KJUR.asn1.ASN1Util.getPEMStringFromHex(nder, 'CERTIFICATE');
 
     // Get Next Certificate:
-    var ndata = new Buffer(nder, 'hex');
+    var ndata = Buffer.from(nder, 'hex');
     //var ndata = ba2ua(ncert);
     var nc = Certificate.decode(ndata, 'der');
 
     // Get Signature Value from current certificate:
-    var data = new Buffer(cert);
+    var data = Buffer.from(cert);
     //var data = ba2ua(der);
     var c = Certificate.decode(data, 'der');
     var sig = c.signature.data;
