@@ -62,13 +62,13 @@ RootCerts.parsePEM = function(pem) {
     pem = parts.slice(1).join('');
   }
   pem = pem.replace(/\s+/g, '');
-  var der = pem ? new Buffer(pem, 'base64') : null;
+  var der = pem ? Buffer.from(pem, 'base64') : null;
   return [{
     type: type,
     headers: headers,
     pem: pem,
     der: der,
-    body: der || new Buffer([0])
+    body: der || Buffer.from([0])
   }];
 };
 

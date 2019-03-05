@@ -22,7 +22,7 @@
     "log-update": "^2.3.0",
     "pako": "^1.0.6",
     "ramda": "^0.25.0",
-    "safe-buffer": "^5.1.1",
+    "safe-buffer": "^5.1.2",
     "sha256": "^0.2.0",
     "sync-request": "^3.0.1",
     "urlsafe-base64": "^1.0.0",
