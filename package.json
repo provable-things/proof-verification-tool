@@ -1,6 +1,6 @@
 {
   "name": "oraclize-proof-verifier",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Verifies Oraclize proofs locally",
   "main": "./lib/index.js",
   "bin": {
