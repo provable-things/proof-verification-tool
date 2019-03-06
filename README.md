@@ -53,7 +53,7 @@ import {verifyProof, getProofType} from 'path to proof verification tool directo
 
 TODO: npm module
 
-## Embed in a java app:
+## Embed in a Java app:
 
 First clone the repository, install the deps `yarn install`, build the project `yarn build` and create the bundle with `yarn browserify-node`. The target is ECMA 2015 but if you want to use yarn you should have at least node 4.8.0
 
