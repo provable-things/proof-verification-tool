@@ -14,7 +14,7 @@ It can be embedded:
 
 * in the **browser**, in j2v8
 
-### :woman_teacher: Functions Exposed
+### Functions Exposed
 
 * `getProofType(proof: string): ProofType`: that accepts an _hexadecimal string_ (the proof) and returns a proof type. For now, the proof types supported are: `proofType_TLSNotary`, `proofType_Android`, `proofType_Ledger`.
 
@@ -57,7 +57,7 @@ For using the Oraclize Proof Verification Tool from the _command line_, execute 
 
 3. Build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn _you should have at least node 4.2.6_.
 
-### :detective: Proof Verification
+### :mag_right: Proof Verification
 
 When you use the `proof-verification-tool` from the command line, you can just check if the proof is valid or also extract the message contained in the proof:
 
