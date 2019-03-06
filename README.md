@@ -51,11 +51,17 @@ It can be embedded:
 
 For using the Oraclize Proof Verification Tool from the _command line_, execute the following steps:
 
-1. Clone the repository;
+**1)** Clone the repository
 
-2. Install the deps: `yarn install`
+**2)** Install the deps:
 
-3. Build the project `yarn build`. The target is ECMA 2015 but if you want to use yarn _you should have at least node 4.2.6_.
+__`❍ yarn install`__
+
+**3)** Build the project:
+
+__`❍ yarn build`__
+
+The target is ECMA 2015 but if you want to use yarn _you should have at least node 4.2.6_.
 
 ### :mag_right: Proof Verification
 
@@ -73,17 +79,25 @@ When you use the `proof-verification-tool` from the command line, you can just c
 
   * If the _proof is unvalid_, it will exit with status code different than 0. When the message contained in the proof is a string the message will be written on the file as a UTF-8 string when is `{type: 'hex', value: string}`, the value will be written as binary data.
 
-## Embed in a Node App:
+&nbsp;
+
+## Embed in a Node App
 
 For using the Oraclize Proof Verification Tool from a _Node app_, execute the following steps:
 
-1. Clone the repository
+**1)** Clone the repository;
 
-2. Install the deps: `yarn install`
+**2)** Install the deps:
 
-3. Build the project `yarn build`.
+__`❍ yarn install`__
 
-4. Then, import the module in your app with: `import {verifyProof, getProofType} from 'path to proof verification tool directory' + '/lib/index.js\'`.
+**3)** Build the project:
+
+__`❍ yarn build`__
+
+**4)** Import the module in your app with:
+
+__`❍ import {verifyProof, getProofType} from 'path to proof verification tool directory' + '/lib/index.js\'`__
 
 The target is ECMA 2015 but if you want to use yarn you should have at least _node 4.8.0_.
 
@@ -91,20 +105,39 @@ The target is ECMA 2015 but if you want to use yarn you should have at least _no
 
 **To Do**: implement an npm module
 
-## Embed in a Java App:
+&nbsp;
+
+## Embed in a Java App
 
 For using the Oraclize Proof Verification Tool from a _Java app_, execute the following steps:
 
-1. Clone the repository
+**1)** Clone the repository;
 
-2. Install the deps: `yarn install`
+**2)** Install the deps:
 
-3. Build the project: `yarn build`
+__`❍ yarn install`__
 
-4. Create the bundle: `yarn browserify-node`.
+**3)** Build the project:
+
+__`❍ yarn build`__
+
+**4)** Create the bundle:
+
+__`❍ yarn browserify-node`__
 
 The target is ECMA 2015 but if you want to use yarn you should have at least _node 4.8.0_.
 
-## Embed in a Browser App:
+&nbsp;
+
+## Embed in a Browser App
 
 Same as embed in a node app. If you use browserify, when you build the bundle execute: `-r fs:browserify-fs`.
+
+&nbsp;
+
+## :black_nib: Notes:
+
+__❍__ If you have any issues, head on over to our
+[Gitter](https://gitter.im/oraclize/ethereum-api?raw=true) channel to get timely support!
+
+__*Happy developing!*__
