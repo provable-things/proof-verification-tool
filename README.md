@@ -6,21 +6,27 @@ The `proof-verification-tool` allows users to _verify if an Oraclize proofs is v
 
 It can be used:
 
-__❍__ From the **command line**
+__❍__ From the **Command Line**.
 
 It can be embedded:
 
-__❍__ As a module in a **Node app** (for now, not via NPM)
+__❍__ As a Module in a **Node app** (for now, not via NPM);
 
-__❍__ In the **browser**, in j2v8
+__❍__ In the **Browser**, in `j2v8`.
 
 ### Functions Exposed
 
-__❍__ `getProofType(proof: string): ProofType`: that accepts an _hexadecimal string_ (the proof) and returns a proof type. For now, the proof types supported are: `proofType_TLSNotary`, `proofType_Android`, `proofType_Ledger`.
+__❍__ `getProofType(proof: string): ProofType`: that accepts an _hexadecimal string_ (the proof) and returns a proof type. For now, the proof types supported are:
+
+  * `proofType_TLSNotary`
+
+  * `proofType_Android`
+
+  * `proofType_Ledger`
 
 __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: that accepts a _byte array_ (the proof), an optional callback, and returns a promise containing the following object:
 
-```
+```javascript
     {
       mainProof: {
         proofType: MainProof,
@@ -45,13 +51,13 @@ __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: that 
 
 __❍__ The `proofType_Android` has two versions. The user should provide the _configuration parameters_ for v1 and v2 on the config file `./settings/settings.json`. These parameters are provided by the Android device and along with the Google API key they are used to generate and validate the proof. The values provided here are just examples of how they are used.
 
-__❍__ All the newly generated Android proofs are **v2**.
+__❍__ All the newly generated `proofType_Android` proofs are **v2**.
 
-## :man_technologist: Use from the Command Line
+## :computer: Use from the Command Line
 
 Please remember that the target is _ECMA 2015_, but if you want to use `yarn` _you should have at least node 4.2.6_.
 
-### :page_with_curl: Instructions
+### :page_with_curl: _Instructions_
 
 For using the Oraclize Proof Verification Tool from the _command line_, execute the following steps:
 
@@ -109,7 +115,7 @@ __`❍ yarn build`__
 
 __`❍ import {verifyProof, getProofType} from 'path to proof verification tool directory' + '/lib/index.js\'`__
 
-The target is ECMA 2015 but if you want to use yarn you should have at least _node 4.8.0_.
+The target is _ECMA 2015_, but if you want to use yarn you should have at least `node 4.8.0`.
 
 ---
 
@@ -137,7 +143,7 @@ __`❍ yarn build`__
 
 __`❍ yarn browserify-node`__
 
-The target is ECMA 2015 but if you want to use yarn you should have at least _node 4.8.0_.
+The target is _ECMA 2015_, but if you want to use yarn you should have at least `node 4.8.0`.
 
 &nbsp;
 
