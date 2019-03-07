@@ -2,7 +2,7 @@
 
 ## Version 0.2.1
 
-The `proof-verification-tool` allows users to _verify if an Oraclize proofs is valid_.
+The `proof-verification-tool` allows users to _verify if an Oraclize proof is valid_.
 
 It can be used:
 
@@ -10,13 +10,13 @@ __❍__ From the **Command Line**.
 
 It can be embedded:
 
-__❍__ As a Module in a **Node app** (for now, not via NPM);
+__❍__ As a Module in a **Node app** (though not yet via `npm`);
 
 __❍__ In the **Browser**, in `j2v8`.
 
 ### Functions Exposed
 
-__❍__ `getProofType(proof: string): ProofType`: accepts an _hexadecimal string_ (the proof), and returns a proof type. For now, the proof types supported are:
+__❍__ `getProofType(proof: string): ProofType`: accepts a _hexadecimal string_ (the proof), and returns a proof type. For now, the proof types supported are:
 
   * `proofType_TLSNotary`
 
@@ -49,15 +49,13 @@ __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: accep
 
 ### :black_nib: Notes:
 
-__❍__ The `proofType_Android` has two versions. The user should provide the _configuration parameters_ for v1 and v2 on the config file `./settings/settings.json`. These parameters are provided by the Android device and along with the Google API key they are used to generate and validate the proof. The values provided here are just examples of how they are used.
+__❍__ The `proofType_Android` has two versions. The user should provide the _configuration parameters_ for v1 and v2 in the config file `./settings/settings.json`. These parameters are provided by the Android device and along with the Google API key, are used to generate and validate the proof. The values provided in settings are just examples of how they are used.
 
 __❍__ All the newly generated `proofType_Android` proofs are **v2**.
 
 ## :computer: Use from the Command Line
 
 Please, remember that the target is _ECMA 2015_, but if you want to use `yarn` you should have at least `node 4.2.6`.
-
-### :page_with_curl: _Instructions_
 
 For using the Oraclize Proof Verification Tool from the _command line_, execute the following steps:
 
@@ -73,25 +71,28 @@ __`❍ cd proof-verification-tool && yarn install`__
 
 __`❍ yarn build`__
 
-#### :mag_right: Proof Verification
+### :mag_right: Proof Verification
 
 When you use the `proof-verification-tool` from the command line, you can check if the proof is valid or extract the message contained in the proof:
 
-**4a)** Check the proof validity:
+**a)** Check the proof validity:
 
-__`❍ node ./lib/cli [path to proof]`__
+__`❍ node ./lib/cli <path/to/proof>`__
 
-  * If the _proof is valid_, the tool prints on the standard output the ParsedProof (format above), exits with status code 0, and shows **SUCCESS** message;
+  * If the proof is _valid_, the tool prints out the `ParsedProof`, then exits cleanly showing a **SUCCESS** message;
 
-  * If the _proof is unvalid_, the tool exits w/ status code different than 0, and shows **FAILURE** message.
+  * If the proof is _not valid_, the tool shows a **FAILURE** message, then exits with a non-zero
+      exit code.
 
-**4b)** Extract the message contained in the proof:
+**b)** Extract the message contained in the proof:
 
-__`❍ node ./lib/cli [path to proof] -s [path to output file]`__
+__`❍ node ./lib/cli <path/to/proof> -s <path/to/output>`__
 
-  * If the _proof is valid_, the tool prints on the standard output the ParsedProof (format above), saves the proof in the specified path, and exits with status code 0;
+  * If the proof is _valid_, the tool prints out the `ParsedProof`, then exits cleanly with an exit code 0;
 
-  * If the _proof is unvalid_, the tool exits w/ status code different than 0. When the message contained in the proof is a string, the message will be written on the file as a UTF-8 string when is `{type: 'hex', value: string}`, the value will be written as binary data.
+  * If the proof is _not valid_, the tool exits with a non-zero exit code.
+
+If the message contained in the proof is of the type `string`, it will be written to the given output-path as a UTF-8 string; if it is of type `hex`, the data wiil be written as binary.
 
 &nbsp;
 
@@ -113,13 +114,9 @@ __`❍ yarn build`__
 
 **4)** Import the module in your app with:
 
-__`❍ import {verifyProof, getProofType} from 'path to proof verification tool directory' + '/lib/index.js\'`__
+__`❍ import { verifyProof, getProofType } from 'path to proof verification tool directory' + '/lib/index.js\'`__
 
 The target is _ECMA 2015_, but if you want to use yarn you should have at least `node 4.8.0`.
-
----
-
-**To Do**: implement an npm module
 
 &nbsp;
 
@@ -149,7 +146,7 @@ The target is _ECMA 2015_, but if you want to use yarn you should have at least 
 
 ## Embed in a Browser App
 
-Same as embed in a Node app.
+Same as embed in a [Node app](#embed-in-a-node-app)
 
 If you use `browserify`, when you build the bundle, execute:
 
@@ -157,7 +154,7 @@ __`❍ -r fs:browserify-fs`__
 
 &nbsp;
 
-## :camera: Passing Proofs:
+## :camera: Examples of Passing Proofs:
 
 ![The passing Android V2 Proof!](./img/androidV2.png)
 ![The passing TLSN Proof!](./img/tlsnV3b.png)
