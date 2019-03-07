@@ -159,9 +159,9 @@ __`❍ -r fs:browserify-fs`__
 
 ## :camera: Passing Proofs:
 
-![The passing Android V2 Proof!](img/androidV2.jpg)
-![The passing TLSN Proof!](img/tlsnV.jpg)
-![The passing Ledger Proof!](img/ledger.jpg)
+![The passing Android V2 Proof!](./img/androidV2.jpg)
+![The passing TLSN Proof!](./img/tlsnV.jpg)
+![The passing Ledger Proof!](./img/ledger.jpg)
 
 &nbsp;
 
