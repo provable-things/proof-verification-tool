@@ -105,7 +105,7 @@ __`❍ git clone https://github.com/oraclize/proof-verification-tool.git`__
 
 **2)** Install the deps:
 
-__`❍ yarn install`__
+__`❍ cd proof-verification-tool && yarn install`__
 
 **3)** Build the project:
 
@@ -133,7 +133,7 @@ __`❍ git clone https://github.com/oraclize/proof-verification-tool.git`__
 
 **2)** Install the deps:
 
-__`❍ yarn install`__
+__`❍ cd proof-verification-tool && yarn install`__
 
 **3)** Build the project:
 
