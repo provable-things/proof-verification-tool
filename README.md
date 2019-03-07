@@ -16,7 +16,7 @@ __❍__ In the **Browser**, in `j2v8`.
 
 ### Functions Exposed
 
-__❍__ `getProofType(proof: string): ProofType`: that accepts an _hexadecimal string_ (the proof) and returns a proof type. For now, the proof types supported are:
+__❍__ `getProofType(proof: string): ProofType`: accepts an _hexadecimal string_ (the proof), and returns a proof type. For now, the proof types supported are:
 
   * `proofType_TLSNotary`
 
@@ -24,7 +24,7 @@ __❍__ `getProofType(proof: string): ProofType`: that accepts an _hexadecimal s
 
   * `proofType_Ledger`
 
-__❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: that accepts a _byte array_ (the proof), an optional callback, and returns a promise containing the following object:
+__❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: accepts a _byte array_ (the proof), an optional callback, and returns a promise containing the following object:
 
 ```javascript
     {
@@ -55,7 +55,7 @@ __❍__ All the newly generated `proofType_Android` proofs are **v2**.
 
 ## :computer: Use from the Command Line
 
-Please remember that the target is _ECMA 2015_, but if you want to use `yarn` _you should have at least node 4.2.6_.
+Please, remember that the target is _ECMA 2015_, but if you want to use `yarn` you should have at least `node 4.2.6`.
 
 ### :page_with_curl: _Instructions_
 
@@ -75,7 +75,7 @@ __`❍ yarn build`__
 
 #### :mag_right: Proof Verification
 
-When you use the `proof-verification-tool` from the command line, you can just check if the proof is valid or also extract the message contained in the proof:
+When you use the `proof-verification-tool` from the command line, you can check if the proof is valid or extract the message contained in the proof:
 
 **4a)** Check the proof validity:
 
@@ -154,6 +154,14 @@ Same as embed in a Node app.
 If you use `browserify`, when you build the bundle, execute:
 
 __`❍ -r fs:browserify-fs`__
+
+&nbsp;
+
+## :camera: Passing Proofs:
+
+![The passing Android V2 Proof!](img/androidV2.jpg)
+![The passing TLSN Proof!](img/tlsnV.jpg)
+![The passing Ledger Proof!](img/ledger.jpg)
 
 &nbsp;
 
