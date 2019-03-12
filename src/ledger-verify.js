@@ -15,17 +15,17 @@ const Buffer = require('safe-buffer').Buffer
 export const verify = (data: Uint8Array) => {
   const proofBuffer = Buffer.from(data)
   const ledgerRootKey = '047fb956469c5c9b89840d55b43537e66a98dd4811ea0a27224272c2e5622911e8537a2f8e86a46baec82864e98dd01e9ccc2f8bc5dfc9cbe5a91a290498dd96e4'
-  const lenCert = proofBuffer.readUInt8((3+65+1)) + 2
+  const lenCert = proofBuffer.readUInt8(3+65+1) + 2
   const appKey1 = proofBuffer.slice(3, 3 + 65)
   let ledgerCert = proofBuffer.slice(3+65, 3+65+ lenCert)
   const extractedCodeHash = proofBuffer.slice(3+65+lenCert, 3+65+lenCert+32)
   const randomCodeHash = Buffer.from('fd94fa71bc0ba10d39d464d0d8f465efeef0a2764e3887fcc9df41ded20f505c', 'hex')
   let type
-  if (extractedCodeHash.equals(randomCodeHash)) {
+  if (extractedCodeHash.equals(randomCodeHash)) 
     type = 'random'
-  } else {
+   else 
     type = 'none'
-  }
+  
   const sig = new r.crypto.Signature({alg: 'SHA256withECDSA'})
   const params = {xy: ledgerRootKey, curve: 'secp256k1'}
   const key = r.KEYUTIL.getKey(params)
@@ -36,7 +36,7 @@ export const verify = (data: Uint8Array) => {
 
 export const verifyRandom = (data: Uint8Array) => {
   const proofBuffer = Buffer.from(data)
-  const lenCert = proofBuffer.readUInt8((3+65+1)) + 2
+  const lenCert = proofBuffer.readUInt8(3+65+1) + 2
   let appKey1 = proofBuffer.slice(3, 3 + 65)
   const codeHash = proofBuffer.slice(3+65+lenCert, 3+65+lenCert+32)
   const ledgerProofLen = 3 + 65 + lenCert + 32
@@ -65,7 +65,7 @@ export const verifyRandom = (data: Uint8Array) => {
   sig2Obj.init(appKey1)
   sig2Obj.updateHex(tosign2.toString('hex'))
   sig1[0] = 48
-  return (sig1Obj.verify(sig1.toString('hex')) && sig2Obj.verify(sig2.toString('hex')))
+  return sig1Obj.verify(sig1.toString('hex')) && sig2Obj.verify(sig2.toString('hex'))
 }
 
 export const verifyLedger = (data: Uint8Array) => {
@@ -75,11 +75,11 @@ export const verifyLedger = (data: Uint8Array) => {
     switch(result[0]) {
       case 'random': {
         const result = verifyRandom(data)
-        if (result) {
+        if (result) 
           status = ['success', 'random valid']
-        } else {
+         else 
           status = ['success', 'random invalid']
-        }
+        
         break
       }
       default:

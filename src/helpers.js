@@ -4,12 +4,12 @@ import R from 'ramda'
 // import fs from 'fs'
 const fs = require('fs')
 const filterReduce = R.curry((wrongValue, a, b) => {
-  if (a === wrongValue) {
+  if (a === wrongValue) 
     return b
-  }
-  if (b === wrongValue) {
+  
+  if (b === wrongValue) 
     return a
-  }
+  
   return a
 })
 
@@ -27,11 +27,11 @@ export const subtractList = R.curry( (biggerList, smallerList) => {
 export const readDirAsync = (path: string): any => {
   return new Promise((resolve, reject) => {
     fs.readdir(path, (error, result) => {
-      if (error) {
+      if (error) 
         reject(error)
-      } else {
+       else 
         resolve(result)
-      }
+      
     })
   })
 }
@@ -39,11 +39,11 @@ export const readDirAsync = (path: string): any => {
 export const readFileAsync = (path: string): any => {
   return new Promise((resolve, reject) => {
     fs.readFile(path, (error, result) => {
-      if (error) {
+      if (error) 
         reject(error)
-      } else {
+       else 
         resolve(result)
-      }
+      
     })
   })
 }
@@ -53,19 +53,19 @@ export const writeFileAsync = (path: string, data, binary): any => {
   return new Promise((resolve, reject) => {
     if ( binary !== 'binary') {
       fs.writeFile(path, data, (error, result) => {
-        if (error) {
+        if (error) 
           reject(error)
-        } else {
+         else 
           resolve(result)
-        }
+        
       })
     } else {
       fs.writeFile(path, data, 'binary', (error, result) => {
-        if (error) {
+        if (error) 
           reject(error)
-        } else {
+         else 
           resolve(result)
-        }
+        
       })
     }
   })

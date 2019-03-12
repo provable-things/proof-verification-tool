@@ -26,7 +26,7 @@ __❍__ `getProofType(proof: string): ProofType`: accepts a _hexadecimal string_
 
 __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: accepts a _byte array_ (the proof), an optional callback, and returns a promise containing the following object:
 
-```javascript
+```json
     {
       mainProof: {
         proofType: MainProof,
@@ -39,13 +39,15 @@ __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: accep
         status: VerificationStatus
       },
       proofShield: ?{
-        proofType: ShiledProof,
+        proofType: ShieldProof,
         isVerified: boolean,
         status: VerificationStatus },
       message: string | {type: 'hex', value: string},
       proofId: string,
     }
 ```
+
+Please, note that the char `?`, in the json snippet above, stands for **optional**.
 
 ### :black_nib: Notes:
 

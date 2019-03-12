@@ -1,4 +1,4 @@
-'use strict'
+
 // @flow
 const atob = require('atob')
 const tlsn_utils = require('./tlsn/tlsn_utils.js')
@@ -33,9 +33,9 @@ export const verifyComputation = (rawHtml) => {
   const awsOutputDirty = atob(awsXML.match(/<output>(.*?)<\/output>/)[1]).split('\n')
   let awsOutputClean = []
   for (let i = 0; i < awsOutputDirty.length; i++) {
-    if (awsOutputDirty[i].substr(0, 2) !== ' *') {
+    if (awsOutputDirty[i].substr(0, 2) !== ' *') 
       awsOutputClean.push(awsOutputDirty[i])
-    }
+    
   }
   const awsOutput = awsOutputClean.join('\n')
   //$FlowFixMe
@@ -50,33 +50,33 @@ export const verifyComputation = (rawHtml) => {
   // convert from base64 to hex
   awsSignature = tlsn_utils.ba2hex(tlsn_utils.str2ba(atob(awsSignature)))
   // check for trusted AMI
-  const awsAMIvalid = (awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1) ? true : false
-  if (!awsAMIvalid) {
+  const awsAMIvalid = awsTrustedAMIlist.indexOf(decodedDoc.imageId) !== -1 ? true : false
+  if (!awsAMIvalid) 
     throw new Error('unrecognized AMI provided')
-  }
+  
   // get instanceId from json doc & xml (from body html)
   const awsInstanceIdDoc = decodedDoc.instanceId
   //$FlowFixMe
   const awsInstanceIdXML = awsXML.match(/<instanceId>(.*?)<\/instanceId>/)[1]
   // check if the instance id is the same
   const awsInstanceMatch = awsInstanceIdDoc === awsInstanceIdXML
-  if (!awsInstanceMatch) {
+  if (!awsInstanceMatch) 
     throw new Error('instance ID mismatch')
-  }
+  
   // Ensure document signature passes verification
   const verifier = new r.KJUR.crypto.Signature({alg: 'SHA256withRSA'})
   verifier.init(awsPublicCertificateRSA)
   verifier.updateString(atob(oraclizeDoc))
   const awsSignatureValid = verifier.verify(awsSignature)
-  if (!awsSignatureValid) {
+  if (!awsSignatureValid) 
     throw new Error('signature invalid')
-  }
+  
   // archive checksum is completed on server-side
   // with the publicly trusted AMI
   const archiveChecksumPass = awsAMIvalid
-  if (!archiveChecksumPass) {
+  if (!archiveChecksumPass) 
     throw new Error('archive checksum failed')
-  }
+  
 }
 
 //$FlowFixMe
@@ -98,7 +98,7 @@ export const isComputationProof = (html: string) => {
   const validator1 = html.indexOf(compCheck1) + compCheck1.length - html.length
   const compCheck2 = 'Server: AmazonEC2'
   const validator2 = html.indexOf(compCheck2)
-  return (validator1 === 0 && validator2 !== -1)
+  return validator1 === 0 && validator2 !== -1
 }
 
 export const verifyComputationProof = (html: string) => {

@@ -15,24 +15,16 @@ type MainProof =
   | 'proofType_Android'
   | 'proofType_Android_v2'
   | 'proofType_Ledger'
-  | 'proofType_Native' // TODO not implemented yet
+  | 'proofType_Native' // Not implemented yet
   | 'proofType_NONE'
 
 type ExtensionProof =
   | 'computation'
   | 'proofType_NONE'
 
-type ShiledProof =
+type ShieldProof =
   | 'type1'
   | 'proofType_NONE'
-
-type VerificationStatus =
-  | ['success', '']
-  | ['failed', '']
-  | TLSNStatus
-  | LedgerStatus
-  | ComputationStatus
-  | AndroidStatus
 
 type TLSNStatus =
   | ['failed', 'wrong header']
@@ -49,7 +41,7 @@ type LedgerStatus =
   | ['success', 'random invalid']
   | ['success', 'nested valid']
   | ['success', 'not recognized nested poof']
-  | ['success', 'subproof invalid'] // TODO
+  | ['success', 'subproof invalid'] // not implemented yet
 
 type AndroidStatus =
   | ['failed', 'verifyPayload failed: apk hash or signing cert hash mismatch']
@@ -74,7 +66,15 @@ type ComputationStatus =
   | ['failed', 'signature invalid']
   | ['failed', 'archive checksum failed']
 
-type ProofType = MainProof | ExtensionProof | ShiledProof 
+type VerificationStatus =
+  | ['success', '']
+  | ['failed', '']
+  | TLSNStatus
+  | LedgerStatus
+  | ComputationStatus
+  | AndroidStatus
+
+type ProofType = MainProof | ExtensionProof | ShieldProof
 
 type ProofStructure = {
   slice: number,
@@ -89,12 +89,12 @@ export type ParsedProof = {
     status: VerificationStatus
   },
   extensionProof: ?{
-    proofType: ExtensionProof, 
+    proofType: ExtensionProof,
     isVerified: boolean,
     status: VerificationStatus
   },
   proofShield: ?{
-    proofType: ShiledProof, 
+    proofType: ShieldProof,
     isVerified: boolean,
     status: VerificationStatus },
   message: string | { type: 'hex', value: string },
@@ -127,9 +127,9 @@ export const getProofType = (proof: string): ProofType => {
 
   const compareProof = R.curry((proof: string, proofStructure: ProofStructure): ProofType => {
     const proofHeader = proof.slice(0, proofStructure.slice)
-    if (proofHeader === proofStructure.content) {
+    if (proofHeader === proofStructure.content)
       return proofStructure.proofName
-    }
+
     return 'proofType_NONE'
   })
   return R.compose(
@@ -140,12 +140,10 @@ export const getProofType = (proof: string): ProofType => {
 
 const findExtensionProof = (message: ?string): ExtensionProof => {
   let extensionType = ''
-  if (message !== null && message !== undefined && isComputationProof(message)) {
+  if (message !== null && message !== undefined && isComputationProof(message))
     extensionType = 'computation'
-  }
-  else {
+  else
     extensionType = 'proofType_NONE'
-  }
   return extensionType
 }
 
@@ -206,7 +204,7 @@ export const verifyProof = async (proof: Uint8Array, callback: any): Promise<Par
     proofShield: null,
     message: message,
     // $FlowFixMe
-    proofId: crypto.createHash('sha256').update(proof).digest().toString('hex'),  // TODO not defined
+    proofId: crypto.createHash('sha256').update(proof).digest().toString('hex'),
   }
   callback && callback(parsedProof)
   return parsedProof
