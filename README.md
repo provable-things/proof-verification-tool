@@ -1,6 +1,6 @@
 # Oraclize Proof Verification Tool
 
-## Version 0.2.1
+## Version 0.2.2
 
 The `proof-verification-tool` allows users to _verify if an Oraclize proof is valid_.
 
@@ -26,7 +26,7 @@ __❍__ `getProofType(proof: string): ProofType`: accepts a _hexadecimal string_
 
 __❍__ `verifyProof(proof: Uint8Array, ?callback): Promise<ParsedProof>`: accepts a _byte array_ (the proof), an optional callback, and returns a promise containing the following object:
 
-```json
+```javascript
     {
       mainProof: {
         proofType: MainProof,
