@@ -1,4 +1,13 @@
-# Oraclize Proof Verification Tool
+# Proof Verification Tool
+
+[![Node
+Version](https://img.shields.io/badge/node-%3E=4.2.6-blue.svg?style=flat)](https://nodejs.org/en/)
+[![Join the chat at
+https://gitter.im/oraclize/ethereum-api](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/oraclize/ethereum-api?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Docs@Oraclize.it](https://camo.githubusercontent.com/5e89710c6ae9ce0da822eec138ee1a2f08b34453/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f646f63732d536c6174652d627269676874677265656e2e737667)](http://docs.oraclize.it)
+[![Contributions
+Welcome!](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/oraclize/proof-verification-tool/issues)
+[![HitCount](http://hits.dwyl.io/oraclize/proof-verification-tool.svg)](http://hits.dwyl.io/oraclize/proof-verification-tool)
 
 ## Version 0.2.2
 
