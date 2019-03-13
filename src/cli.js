@@ -10,8 +10,6 @@ import process from 'process';
 import R from 'ramda';
 import elegantSpinner from 'elegant-spinner';
 import logUpdate from 'log-update';
-// $FlowFixMe
-const Buffer = require('buffer').Buffer;
 
 const flags = {
   saveMessage: '-s',
@@ -38,9 +36,9 @@ const parseProof = async (path) => {
   let verifiedProof;
   try {
     verifiedProof = await verifyProof(parsedProof);  
-    if (!verifiedProof.mainProof.isVerified) {
+    if (!verifiedProof.mainProof.isVerified) 
       throw new Error();
-    }
+    
   } catch (error) {
     throw new Error(error);
   }
@@ -56,11 +54,11 @@ const parseProof = async (path) => {
   
   console.log(chalk.yellow('Proof ID: '),'\n ', verifiedProof.proofId);
   if (R.contains(flags.saveMessage, process.argv)) {
-    if(typeof verifiedProof.message === 'string') {
+    if(typeof verifiedProof.message === 'string') 
       await writeFileAsync(saveOutputPath(), verifiedProof.message);
-    } else {
-      await writeFileAsync(saveOutputPath(), Buffer(getMessageContent(verifiedProof.message, true)), 'binary');
-    }
+     else 
+      await writeFileAsync(saveOutputPath(), Buffer.from(getMessageContent(verifiedProof.message, true)), 'binary');
+    
   }
 };
 
