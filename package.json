@@ -68,8 +68,10 @@
     "nyc": "^13.3.0"
   },
   "scripts": {
+    "verify": "node ./lib/cli.js",
     "build": "./node_modules/.bin/babel ./src -d ./lib",
-    "test": "node ./lib/test.js",
+    "test:proofs": "node ./lib/test.js",
+    "test:proofs-failed": "node ./lib/testFailedProofs.js",
     "test-bundle": "node -e \"require('./bundleTestNode.js');\"",
     "flow": "./node_modules/.bin/flow",
     "lint": "eslint '**/*.js'",
