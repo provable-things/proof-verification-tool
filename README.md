@@ -9,7 +9,7 @@ https://gitter.im/oraclize/ethereum-api](https://badges.gitter.im/Join%20Chat.sv
 Welcome!](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/oraclize/proof-verification-tool/issues)
 [![HitCount](http://hits.dwyl.io/oraclize/proof-verification-tool.svg)](http://hits.dwyl.io/oraclize/proof-verification-tool)
 
-## Version 0.2.2
+## Version 0.2.3
 
 The `proof-verification-tool` allows users to _verify if an Oraclize proof is valid_.
 
@@ -88,7 +88,7 @@ When you use the `proof-verification-tool` from the command line, you can check 
 
 **a)** Check the proof validity:
 
-__`❍ node ./lib/cli <path/to/proof>`__
+__`❍ npm run verify <path/to/proof>`__
 
   * If the proof is _valid_, the tool prints out the `ParsedProof`, then exits cleanly showing a **SUCCESS** message;
 
@@ -170,6 +170,18 @@ __`❍ -r fs:browserify-fs`__
 ![The passing Android V2 Proof!](./img/androidV2.png)
 ![The passing TLSN Proof!](./img/tlsnV3b.png)
 ![The passing Ledger Proof!](./img/ledger.png)
+
+&nbsp;
+
+## Test Available Proofs:
+
+To test all the successfully verified proofs in the folder `src/proof` execute:
+
+__`❍ npm run test:proofs`__
+
+To test all the failing proofs in the folder `src/proof/failed` execute:
+
+__`❍ npm run test:proofs-failed`__
 
 &nbsp;
 
