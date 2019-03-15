@@ -1,6 +1,6 @@
 {
   "name": "@provable/proof-verification-tool",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Verifies Oraclize proofs locally",
   "author": "Provable",
   "license": "ISC",
@@ -8,6 +8,9 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/oraclize/proof-verification-tool"
+  },
+  "bugs": { 
+    "url" : "https://github.com/oraclize/proof-verification-tool/issues" 
   },
   "bin": {
     "proof-verication-tool": "lib/cli.js"
@@ -68,7 +71,7 @@
     "nyc": "^13.3.0"
   },
   "scripts": {
-    "verify": "node ./lib/cli.js",
+    "verify": "node ./lib/cli",
     "build": "./node_modules/.bin/babel ./src -d ./lib",
     "test:proofs": "node ./lib/test.js",
     "test:proofs-failed": "node ./lib/testFailedProofs.js",
