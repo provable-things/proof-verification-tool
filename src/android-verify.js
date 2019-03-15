@@ -250,10 +250,10 @@ export const verify = async (data: Uint8Array, version: string) => {
   const buf = Buffer.from(cborEncodedData.buffer)
   const androidProof = cbor.decodeFirstSync(buf)
   let status = ''
-  let settings
-  let requestID
-  let encodedChain
-  let pemEncodedChain
+  let settings = null
+  let requestID = null
+  let encodedChain = null
+  let pemEncodedChain = null
   if (version === 'v1') {
     settings = jsonSettings.v1
     requestID = androidProof.requestID.toString()
@@ -283,10 +283,9 @@ export const verify = async (data: Uint8Array, version: string) => {
     const jwsSignatureEncoded = URLSafeBase64.encode(androidProof.JWS_Signature)
     const jws = jwsHeaderEncoded.concat('.').concat(jwsPayloadEncoded).concat('.').concat(jwsSignatureEncoded)
     const googleCert = extractGoogleCert(jwsHeader)
-
-    let respVer
+    let respVer = null
     if (pemEncodedChain === null) {
-      verifyResponseSignature(response, signature, null, whitelistedPubKeys, hashAlg)
+      respVer = verifyResponseSignature(response, signature, null, whitelistedPubKeys, hashAlg)
     } else {
       const leafCert = new r.X509()
       const intermediateCert = new r.X509()
@@ -301,13 +300,13 @@ export const verify = async (data: Uint8Array, version: string) => {
           status = e.message
          else
           throw e
-
       }
       verifyAttestationCertChain(leafCert, intermediateCert, rootCert, pemEncodedChain[k][1], pemEncodedChain[k][2])
       respVer = verifyResponseSignature(response, signature, pemEncodedChain[k][0], null, hashAlg)
     }
-
-    if(!respVer){
+    if (!respVer) {
+      if (k == encodedChain.length - 1)
+        throw new Error('verifyResponseSignature failed')
       continue
     } else {
       for (let j = 0; j < apkDigest.length; j++) {
@@ -315,29 +314,22 @@ export const verify = async (data: Uint8Array, version: string) => {
           try {
             verifyPayload(jwsPayload, response, requestID, signature, apkDigest[j], apkCertDigest[i], version)
           } catch (err) {
-            if (err.message !== 'verifyPayload failed: wrong signing certificate hash' &&
-              err.message !== 'verifyPayload failed: wrong apk hash')
+            if (err.message !== 'verifyPayload failed: wrong signing certificate hash' && err.message !== 'verifyPayload failed: wrong apk hash')
               throw new Error('verifyPayload failed: apk hash or signing cert hash mismatch')
-
           }
         }
       }
-
       if (!verifySignature(jws, googleCert))
         throw new Error('verifySignature failed')
-
-
       for (let i = 0; i < googleApiKey.length; i++) {
         try {
-          let result
+          let result = null
           if (version === 'v1')
             result = await verifyAuthenticity(jws, googleApiKey[i])
            else if (version === 'v2')
             result = await verifyAuthenticityV2(jws, googleApiKey[i])
            else
             throw new Error('version unsupported')
-
-
           if (result) {
             status = ''
             break
@@ -345,45 +337,47 @@ export const verify = async (data: Uint8Array, version: string) => {
         } catch (err) {
           if (i == googleApiKey.length - 1)
             throw new Error('verifyAuthenticity failed')
-
         }
       }
-        return ['success', status]
+      return ['success', status]
     }
   }
 }
 
 export const verifyAndroid = async (data: Uint8Array, version: string) => {
-  const cborEncodedData = data.slice(3)
-  const buf = Buffer.from(cborEncodedData.buffer)
-  const androidProof = cbor.decodeFirstSync(buf)
-  const response = androidProof.HTTPResponse.toString()
   let status = null
-  const validErrors =
-    [ 'verifyPayload failed: apk hash or signing cert hash mismatch'
-      , 'verifyAuthenticity failed'
-      , 'verifyPayload failed: wrong apk hash'
-      , 'verifyPayload failed: wrong signing certificate hash'
-      , 'verifyResponseSignature failed'
-      , 'verifyAttestationParams failed: keymasterVersion mismatch'
-      , 'verifyAttestationParams failed: keymasterSecurityLevel mismatch'
-      , 'verifyAttestationParams failed: attestationChallenge value mismatch'
-      , 'verifyAttestationParams failed: key purpose mismatch'
-      , 'verifyAttestationParams failed: key algorithm type mismatch'
-      , 'verifyAttestationParams failed: key digest mismatch'
-      , 'verifyAttestationParams failed: ecCurve mismatch'
-      , 'verifyAttestationParams failed: key was not generated on device'
-    ]
+  try {
+    const cborEncodedData = data.slice(3)
+    const buf = Buffer.from(cborEncodedData.buffer)
+    const androidProof = cbor.decodeFirstSync(buf)
+    const response = androidProof.HTTPResponse.toString()
+    const validErrors =
+      [ 'verifyPayload failed: apk hash or signing cert hash mismatch'
+        , 'verifyAuthenticity failed'
+        , 'verifyPayload failed: wrong apk hash'
+        , 'verifyPayload failed: wrong signing certificate hash'
+        , 'verifyResponseSignature failed'
+        , 'verifyAttestationParams failed: keymasterVersion mismatch'
+        , 'verifyAttestationParams failed: keymasterSecurityLevel mismatch'
+        , 'verifyAttestationParams failed: attestationChallenge value mismatch'
+        , 'verifyAttestationParams failed: key purpose mismatch'
+        , 'verifyAttestationParams failed: key algorithm type mismatch'
+        , 'verifyAttestationParams failed: key digest mismatch'
+        , 'verifyAttestationParams failed: ecCurve mismatch'
+        , 'verifyAttestationParams failed: key was not generated on device'
+      ]
   try {
     status = await verify(data, version)
-  }catch(err){
+  } catch(err) {
     if (R.contains(err.message, validErrors))
       status = ['failed', err.message]
-
     else
       throw err
-
   }
   const isVerified = status[0] === 'success' ? true : false
   return { status: status, parsedData: response, isVerified }
+  } catch (e) {
+    status = ['failed', 'generic error message']
+    return { status: status, parsedData: '', isVerified: false}
+  }
 }
