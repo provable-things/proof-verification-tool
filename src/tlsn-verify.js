@@ -133,10 +133,8 @@ const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => 
       }
     }
   }
-  if (!commitHashVerified){
+  if (!commitHashVerified)
     throw new Error('Matching notary server not found')
-
-  }
 
   //decrypt html and check MAC
   let s = new TLSNClientSession()
@@ -169,9 +167,8 @@ const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableS
     const verifiedProof = verify(data, verifiedServers, notVerifiableServers)
     const isServerVerified = verifiedProof[4]
     parsedData = verifiedProof[0]
-    if (isServerVerified === 'no') {
+    if (isServerVerified === 'no')
       status = ['success', 'matching notary server not on-line']
-    }
     else
       status = ['success', 'no exceptions']
   } catch(err) {

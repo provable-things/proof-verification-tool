@@ -35,12 +35,13 @@ async function getJSON(res) {
 const validateServer = async (server, type) => {
   try {
     let notaryServer = null
-    if (type === 'sig') notaryServer = server.sig
-    else notaryServer = server.main
+    if (type === 'sig')
+      notaryServer = server.sig
+    else
+      notaryServer = server.main
     let res = await request(notaryServer.DI)
     if (res.status !== 200)
       throw new Error('aws_await request_failed')
-    await console.log("step2")
     let json = await getJSON(res)
     const args = checkDescribeInstances(json.DescribeInstancesResponse, notaryServer.instanceId, notaryServer.IP, type)
     res = await request(notaryServer.DV)
