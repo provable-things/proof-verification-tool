@@ -169,7 +169,6 @@ const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableS
     parsedData = verifiedProof[0]
     if (isServerVerified === 'no')
       status = ['success', 'matching notary server not on-line']
-
     else
       status = ['success', 'no exceptions']
   } catch(err) {
