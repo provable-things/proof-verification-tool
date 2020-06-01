@@ -51,6 +51,7 @@ function getCommonName(cert) {
 }
 
 const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => {
+  console.log("verify TLSN!!!!!")
   data = tlsn_utils.ua2ba(data)
   let offset = 0
   const header = tlsn_utils.ba2str(data.slice(offset, offset += 29))
@@ -133,8 +134,11 @@ const verify = (data, servers: Array<any>, notVerifiableServers: Array<any>) => 
       }
     }
   }
-  if (!commitHashVerified)
+  if (!commitHashVerified){
+    console.log("COMMIT HASH NOT VERIFIEEEEEEEEEEEEEEEEEEEED!!!!!!!!!!!!!!!!!!!")
     throw new Error('Matching notary server not found')
+
+  }
 
   //decrypt html and check MAC
   let s = new TLSNClientSession()
@@ -164,12 +168,16 @@ const verifyTLS = (data: Uint8Array, verifiedServers: Array<any>, notVerifiableS
   let status
   let parsedData
   try {
+    console.log("verifiedServers:", verifiedServers)
+    //console.log("notVerifiableServers:", notVerifiableServers)
     const verifiedProof = verify(data, verifiedServers, notVerifiableServers)
     const isServerVerified = verifiedProof[4]
+    console.log("isServerVerified:", isServerVerified)
     parsedData = verifiedProof[0]
-    if (isServerVerified === 'no')
+    if (isServerVerified === 'no') {
+      console.log("SERVER NOT VERIFFFFFIED!!!")
       status = ['success', 'matching notary server not on-line']
-
+    }
     else
       status = ['success', 'no exceptions']
   } catch(err) {

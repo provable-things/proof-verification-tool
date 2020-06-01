@@ -17,13 +17,13 @@ const snapshotIdV2 = ['snap-03bae56722ceec3f0', 'snap-0fa4d717595514c9e',
                       'snap-0aae1b6ca8c4b0f8d', 'snap-001724fd6e3219a8b',
                       'snap-0d6e71fc4113c1d7f', 'snap-0d65665f4afaf28f8',
                       'snap-0f2a4af7bbcaf3374', 'snap-03a7cfbcc835aae69',
-                      'snap-01bd7dcd6b89c4784']
+                      'snap-01bd7dcd6b89c4784', 'snap-03c1d1eaab2ded518']
 
 const imageIdV2 = ['ami-1f447c65', 'ami-0900465cc4d168b18',
                    'ami-05fd672d486340db9', 'ami-004bb38dca2efe5cf',
                    'ami-0fc7d2d0c4a3fe3f5', 'ami-01887359c36e2e246',
                    'ami-0d9bdb20c502dbb32', 'ami-01fe7595953c2753b',
-                   'ami-0d0829459bf2597b0']
+                   'ami-0d0829459bf2597b0', 'ami-0f558579909742612']
 
 const servers = require('./servers.js').servers
 
@@ -35,18 +35,23 @@ async function getJSON(res) {
 const validateServer = async (server, type) => {
   try {
     let notaryServer = null
-    if (type === 'sig')
+    if (type === 'sig') {
       notaryServer = server.sig
-     else
+    }
+     else {
       notaryServer = server.main
+     }
     let res = await request(notaryServer.DI)
-    if (res.status !== 200)
+    if (res.status !== 200) {
       throw new Error('aws_await request_failed')
+    }
+    await console.log("step2")
     let json = await getJSON(res)
     const args = checkDescribeInstances(json.DescribeInstancesResponse, notaryServer.instanceId, notaryServer.IP, type)
     res = await request(notaryServer.DV)
-    if (res.status !== 200)
+    if (res.status !== 200) {
       throw new Error('aws_await request_failed')
+    }
     json = await getJSON(res)
     checkDescribeVolumes(json.DescribeVolumesResponse, notaryServer.instanceId, args.volumeId, args.volAttachTime, type)
     if (typeof window === 'undefined') { //TODO proxy server to be able to access ami.amzon from browser
@@ -57,8 +62,9 @@ const validateServer = async (server, type) => {
       checkGetUser(json.GetUserResponse.GetUserResult, args.ownerId)
     }
     res = await request(notaryServer.GCO)
-    if (res.status !== 200)
+    if (res.status !== 200) {
       throw new Error('aws_await request_failed')
+    }
     json = await getJSON(res)
     const pubKey = checkGetConsoleOutput(json.GetConsoleOutputResponse, notaryServer.instanceId, args.launchTime, type)
     res = await request(notaryServer.DIA)
@@ -205,23 +211,25 @@ function checkDescribeVolumes(json, instanceId, volumeId, volAttachTime, type) {
     // currentInstance guarantees that there was no time window to modify it
     assert(getSecondsDelta(attTime, volCreateTime) === 0)
   } catch (err) {
+    console.log("err volumes:", err)
     throw new Error('checkDescribeVolumes_failed')
   }
 }
 
 function checkGetConsoleOutput(json, instanceId, launchTime, type) {
   try {
+    console.log("checkGetConsoleOutput")
     assert(json.instanceId.toString() === instanceId)
     const timestamp = json.timestamp.toString()
     // prevent funny business: last consoleLog entry no later than 4 minutes after instance starts
     const consoleOutputB64Encoded = json.output.toString()
     const consoleOutputStr = tlsn_utils.ba2str(tlsn_utils.b64decode(consoleOutputB64Encoded))
     if (type === 'main' || type === 'sig') {
+      console.log("in if")
       // no other string starting with xvd except for xvda
       assert(consoleOutputStr.search(/xvd[^a]/g) === -1)
+      console.log("1")
       assert(getSecondsDelta(timestamp, launchTime) <= 240)
-    } else {
-      assert(getSecondsDelta(timestamp, launchTime) <= 300)
     }
     let pubKey = null
     let beginMark = ''
