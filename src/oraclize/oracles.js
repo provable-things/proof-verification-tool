@@ -35,23 +35,17 @@ async function getJSON(res) {
 const validateServer = async (server, type) => {
   try {
     let notaryServer = null
-    if (type === 'sig') {
-      notaryServer = server.sig
-    }
-     else {
-      notaryServer = server.main
-     }
+    if (type === 'sig') notaryServer = server.sig
+    else notaryServer = server.main
     let res = await request(notaryServer.DI)
-    if (res.status !== 200) {
+    if (res.status !== 200)
       throw new Error('aws_await request_failed')
-    }
     await console.log("step2")
     let json = await getJSON(res)
     const args = checkDescribeInstances(json.DescribeInstancesResponse, notaryServer.instanceId, notaryServer.IP, type)
     res = await request(notaryServer.DV)
-    if (res.status !== 200) {
+    if (res.status !== 200)
       throw new Error('aws_await request_failed')
-    }
     json = await getJSON(res)
     checkDescribeVolumes(json.DescribeVolumesResponse, notaryServer.instanceId, args.volumeId, args.volAttachTime, type)
     if (typeof window === 'undefined') { //TODO proxy server to be able to access ami.amzon from browser
@@ -62,9 +56,8 @@ const validateServer = async (server, type) => {
       checkGetUser(json.GetUserResponse.GetUserResult, args.ownerId)
     }
     res = await request(notaryServer.GCO)
-    if (res.status !== 200) {
+    if (res.status !== 200)
       throw new Error('aws_await request_failed')
-    }
     json = await getJSON(res)
     const pubKey = checkGetConsoleOutput(json.GetConsoleOutputResponse, notaryServer.instanceId, args.launchTime, type)
     res = await request(notaryServer.DIA)
@@ -211,24 +204,20 @@ function checkDescribeVolumes(json, instanceId, volumeId, volAttachTime, type) {
     // currentInstance guarantees that there was no time window to modify it
     assert(getSecondsDelta(attTime, volCreateTime) === 0)
   } catch (err) {
-    console.log("err volumes:", err)
     throw new Error('checkDescribeVolumes_failed')
   }
 }
 
 function checkGetConsoleOutput(json, instanceId, launchTime, type) {
   try {
-    console.log("checkGetConsoleOutput")
     assert(json.instanceId.toString() === instanceId)
     const timestamp = json.timestamp.toString()
     // prevent funny business: last consoleLog entry no later than 4 minutes after instance starts
     const consoleOutputB64Encoded = json.output.toString()
     const consoleOutputStr = tlsn_utils.ba2str(tlsn_utils.b64decode(consoleOutputB64Encoded))
     if (type === 'main' || type === 'sig') {
-      console.log("in if")
       // no other string starting with xvd except for xvda
       assert(consoleOutputStr.search(/xvd[^a]/g) === -1)
-      console.log("1")
       assert(getSecondsDelta(timestamp, launchTime) <= 240)
     }
     let pubKey = null
