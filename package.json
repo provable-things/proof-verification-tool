@@ -27,7 +27,7 @@
     "figlet": "^1.2.0",
     "get-random-values": "^1.2.0",
     "isomorphic-fetch": "^2.2.1",
-    "jsrsasign": "^6.2.1",
+    "jsrsasign": "^8.0.19",
     "log-update": "^2.3.0",
     "pako": "^1.0.6",
     "ramda": "^0.25.0",
