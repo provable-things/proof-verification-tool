@@ -2938,9 +2938,10 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jsrsasign@^6.2.1:
-  version "6.2.3"
-  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-6.2.3.tgz#c474bd7861e5dc444de55fb54a0bb9e566322757"
+jsrsasign@^10.5.25:
+  version "10.5.25"
+  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-10.5.25.tgz#8eb3f943718d73f2dd3d85f587f241a5316b835a"
+  integrity sha512-N7zxHaCwYvFlXsybq4p4RxRwn4AbEq3cEiyjbCrWmwA7g8aS4LTKDJ9AJmsXxwtYesYx0imJ+ITtkyyxLCgeIg==
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
