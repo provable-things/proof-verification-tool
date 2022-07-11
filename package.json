@@ -1,6 +1,6 @@
 {
   "name": "@provable/proof-verification-tool",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Verifies Oraclize proofs locally",
   "author": "Provable",
   "license": "ISC",

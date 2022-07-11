@@ -257,13 +257,13 @@ export const verify = async (data: Uint8Array, version: string) => {
   if (version === 'v1') {
     settings = jsonSettings.v1
     requestID = androidProof.requestID.toString()
-    encodedChain = [Buffer.from(jsonSettings.v1.androidCertChain[0], 'base64')]
-    pemEncodedChain = [getCertificateChain(encodedChain[0])]
+    encodedChain = jsonSettings.v1.androidCertChain.map(cert => Buffer.from(cert, 'base64'))
+    pemEncodedChain = encodedChain.map(chain => getCertificateChain(chain))
   } else if (version === 'v2'){
     settings = jsonSettings.v2
     requestID = androidProof.requestID.toString('hex')
-    encodedChain = [Buffer.from(jsonSettings.v2.androidCertChain[0], 'base64'), Buffer.from(jsonSettings.v2.androidCertChain[1], 'base64')]
-    pemEncodedChain = [getCertificateChain(encodedChain[0]), getCertificateChain(encodedChain[1])]
+    encodedChain = jsonSettings.v2.androidCertChain.map(cert => Buffer.from(cert, 'base64'))
+    pemEncodedChain = encodedChain.map(chain => getCertificateChain(chain))
   } else {
     throw new Error('version unsupported, please use v1 or v2')
   }
