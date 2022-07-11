@@ -9,7 +9,7 @@ https://gitter.im/oraclize/ethereum-api](https://badges.gitter.im/Join%20Chat.sv
 Welcome!](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/oraclize/proof-verification-tool/issues)
 [![HitCount](http://hits.dwyl.io/oraclize/proof-verification-tool.svg)](http://hits.dwyl.io/oraclize/proof-verification-tool)
 
-## Version 0.2.3
+## Version 0.2.4
 
 The `proof-verification-tool` allows users to _verify if an Oraclize proof is valid_.
 
